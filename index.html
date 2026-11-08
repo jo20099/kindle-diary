@@ -7,7 +7,7 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { background:#fff; color:#000; }
-body { font-family:sans-serif; -webkit-text-size-adjust:none; line-height:1.15; }
+body { font-family:sans-serif; -webkit-text-size-adjust:none; line-height:1.15; padding-bottom:150px; }
 #bar { font-size:26px; padding:8px 10px; border-bottom:2px solid #000; }
 #bar b { font-size:30px; }
 .btn { display:inline-block; border:2px solid #000; padding:1px 10px; margin-left:5px; font-size:24px; color:#000; text-decoration:none; }
@@ -21,7 +21,8 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 #diaryBox { padding:5px 14px 12px; }
 #diaryBox p { font-size:26px; line-height:38px; word-break:break-all; }
 .empty { font-size:24px; color:#555; line-height:38px; }
-/* 底部固定块：天气（最底）+ 雪碧（天气右上角/页面右下但不贴底） */
+/* 底部固定块：天气（左）+ 雪碧（右），固定钉在屏幕最底部 */
+#foot { position:fixed; left:0; bottom:0; width:100%; background:#fff; border-top:2px solid #000; }
 #foot td { vertical-align:top; }
 #foot .catc { width:210px; text-align:right; padding-right:8px; }
 #foot .catc .bubble { font-size:24px; line-height:32px; font-weight:bold; color:#333; word-break:break-all; }
