@@ -16,14 +16,17 @@
   .ok{ background:#e6f4ea; color:#137333; }
   .bad{ background:#fce8e6; color:#c5221f; }
   .token{ margin-top:20px; padding-top:16px; border-top:1px solid #eee; }
+  .datedList{ font-size:13px; color:#555; margin-top:6px; }
+  .datedList a{ color:#1967d2; cursor:pointer; margin-right:8px; }
 </style>
 </head>
 <body>
   <h1>雪碧成长日记 · 管理后台</h1>
-  <label>标题</label>
+  <label>标题（全局，所有日期共用）</label>
   <input type="text" id="title" value="雪碧成长日记">
   <label>日期（YYYY-MM-DD，留空为今天）</label>
   <input type="text" id="date" placeholder="2026-11-08">
+  <div class="datedList" id="datedList"></div>
   <label>今日打卡（每行一项）</label>
   <textarea id="checklist"></textarea>
   <label>今日作业（每行一项）</label>
@@ -34,7 +37,7 @@
   <div class="token">
     <label>GitHub Token（仅本浏览器保存，用于保存数据）</label>
     <input type="text" id="token" placeholder="ghp_...">
-    <div class="hint">需要 repo 权限的 personal access token。保存在本浏览器 localStorage，不会上传到任何第三方。目标仓库：jo20099/kindle-diary，文件：data.json。</div>
+    <div class="hint">需要 repo 权限的 personal access token。保存在本浏览器 localStorage，不会上传到任何第三方。目标仓库：jo20099/kindle-diary，文件：data.json。数据按日期归档，可回看历史。</div>
   </div>
 
   <button onclick="save()">保存并发布</button>
@@ -46,9 +49,59 @@
   function setStatus(msg, cls){ var s=document.getElementById('status'); s.className=cls||''; s.innerHTML=msg; }
   function loadToken(){ try{ return localStorage.getItem('sb_admin_token')||''; }catch(e){ return ''; } }
   function saveToken(t){ try{ localStorage.setItem('sb_admin_token', t); }catch(e){} }
-  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+  function todayStr(){ var d=new Date(); var p=function(n){return ('0'+n).slice(-2);}; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+  function b64EncodeUnicode(str){ return btoa(unescape(encodeURIComponent(str))); }
+  function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str.replace(/\s/g,'')))); }
+  function splitLines(s){ return s.split('\n').map(function(x){return x.trim();}).filter(function(x){return x;}); }
 
-  // 载入现有数据到表单
+  var CURRENT=null; // 已加载的整份数据
+
+  function renderDatedList(){
+    var box=document.getElementById('datedList');
+    if(!CURRENT || !CURRENT.days){ box.innerHTML=''; return; }
+    var keys=Object.keys(CURRENT.days).sort().reverse();
+    if(keys.length===0){ box.innerHTML=''; return; }
+    box.innerHTML='已有记录：' + keys.map(function(k){ return '<a onclick="loadDay(\''+k+'\')">'+k+'</a>'; }).join('');
+  }
+
+  function loadDay(date){
+    document.getElementById('date').value=date;
+    if(CURRENT && CURRENT.days && CURRENT.days[date]){
+      var e=CURRENT.days[date];
+      document.getElementById('checklist').value=(e.checklist||[]).join('\n');
+      document.getElementById('homework').value=(e.homework||[]).join('\n');
+      document.getElementById('diary').value=e.diary||'';
+    } else {
+      document.getElementById('checklist').value='';
+      document.getElementById('homework').value='';
+      document.getElementById('diary').value='';
+    }
+  }
+
+  function fetchData(cb){
+    var xhr=new XMLHttpRequest();
+    xhr.open('GET','https://api.github.com/repos/'+REPO+'/contents/'+FILE,true);
+    xhr.setRequestHeader('Authorization','token '+loadToken());
+    xhr.setRequestHeader('Accept','application/vnd.github.v3+json');
+    xhr.onreadystatechange=function(){
+      if(xhr.readyState!==4) return;
+      if(xhr.status>=200 && xhr.status<300){
+        try{
+          var obj=JSON.parse(xhr.responseText);
+          var content=b64DecodeUnicode(obj.content);
+          var data=JSON.parse(content);
+          cb(data, obj.sha, null);
+        }catch(e){ cb(null,null,'解析现有数据失败'); }
+      } else if(xhr.status===404){
+        cb({}, null, null); // 文件不存在，当作空
+      } else {
+        cb(null,null,'读取仓库失败（'+xhr.status+'）');
+      }
+    };
+    xhr.send();
+  }
+
+  // 初始化：载入标题、最近一天、历史列表
   (function(){
     document.getElementById('token').value=loadToken();
     var xhr=new XMLHttpRequest();
@@ -57,41 +110,48 @@
       if(xhr.readyState===4 && xhr.status>=200 && xhr.status<300){
         try{
           var d=JSON.parse(xhr.responseText);
+          CURRENT=d;
           if(d.title) document.getElementById('title').value=d.title;
-          if(d.date) document.getElementById('date').value=d.date;
-          if(d.checklist) document.getElementById('checklist').value=d.checklist.join('\n');
-          if(d.homework) document.getElementById('homework').value=d.homework.join('\n');
-          if(d.diary) document.getElementById('diary').value=d.diary;
+          var date=null;
+          if(d.days){ var keys=Object.keys(d.days).sort(); date=keys[keys.length-1]||todayStr(); }
+          else { date=d.date||todayStr(); }
+          document.getElementById('date').value=date;
+          loadDay(date);
+          renderDatedList();
         }catch(e){}
       }
     };
     xhr.send();
   })();
 
+  // 切换日期时，同步表单内容
+  document.getElementById('date').addEventListener('change', function(){
+    loadDay(this.value.trim());
+  });
+
   function save(){
     var token=document.getElementById('token').value.trim();
     if(!token){ setStatus('请先填写 GitHub Token','bad'); return; }
     saveToken(token);
-    var data={
-      title: document.getElementById('title').value,
-      date: document.getElementById('date').value || todayStr(),
-      checklist: document.getElementById('checklist').value.split('\n').map(function(s){return s.trim();}).filter(function(s){return s;}),
-      homework: document.getElementById('homework').value.split('\n').map(function(s){return s.trim();}).filter(function(s){return s;}),
+    var date=document.getElementById('date').value.trim() || todayStr();
+    var title=document.getElementById('title').value;
+    var entry={
+      checklist: splitLines(document.getElementById('checklist').value),
+      homework: splitLines(document.getElementById('homework').value),
       diary: document.getElementById('diary').value
     };
-    var content=JSON.stringify(data,null,2);
-    var getXhr=new XMLHttpRequest();
-    getXhr.open('GET','https://api.github.com/repos/'+REPO+'/contents/'+FILE,true);
-    getXhr.setRequestHeader('Authorization','token '+token);
-    getXhr.setRequestHeader('Accept','application/vnd.github.v3+json');
-    getXhr.onreadystatechange=function(){
-      if(getXhr.readyState!==4) return;
-      var sha=null;
-      if(getXhr.status>=200 && getXhr.status<300){
-        try{ sha=JSON.parse(getXhr.responseText).sha; }catch(e){}
-      }
-      var body={ message:'update data.json via admin', content: b64EncodeUnicode(content) };
+
+    fetchData(function(data, sha, err){
+      if(err){ setStatus(err,'bad'); return; }
+      if(!data || typeof data!=='object') data={};
+      if(!data.title) data.title=title; else data.title=title;
+      if(!data.days) data.days={};
+      data.days[date]=entry;
+
+      var content=JSON.stringify(data,null,2);
+      var body={ message:'update '+date+' via admin', content: b64EncodeUnicode(content) };
       if(sha) body.sha=sha;
+
       var putXhr=new XMLHttpRequest();
       putXhr.open('PUT','https://api.github.com/repos/'+REPO+'/contents/'+FILE,true);
       putXhr.setRequestHeader('Authorization','token '+token);
@@ -100,7 +160,8 @@
       putXhr.onreadystatechange=function(){
         if(putXhr.readyState!==4) return;
         if(putXhr.status>=200 && putXhr.status<300){
-          setStatus('已保存！约 1 分钟后在 Kindle 上点「刷新」即可看到（GitHub Pages 重新构建中）。','ok');
+          CURRENT=data; renderDatedList();
+          setStatus('已保存 '+date+'！约 1 分钟后在 Kindle 上点「刷新」，翻到该日期即可看到。','ok');
         }else{
           var m='保存失败（'+putXhr.status+'）';
           try{ m+='：'+JSON.parse(putXhr.responseText).message; }catch(e){}
@@ -108,12 +169,7 @@
         }
       };
       putXhr.send(JSON.stringify(body));
-    };
-    getXhr.send();
-  }
-
-  function b64EncodeUnicode(str){
-    return btoa(unescape(encodeURIComponent(str)));
+    });
   }
 </script>
 </body>
