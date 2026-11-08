@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>雪碧成长日记</title>
+<title>瓜瓜成长日记</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { background:#fff; color:#000; }
@@ -23,7 +23,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .wt3 { font-size:22px; color:#222; }
 #mascot { table-layout:auto; }
 #mascot td { vertical-align:middle; border-bottom:2px solid #000; padding:6px 10px; }
-#mascot .catcell { width:380px; text-align:center; }
+#mascot .catcell { width:190px; text-align:center; }
 #mascot .bubble { font-size:30px; line-height:40px; font-weight:bold; }
 #mascot .greet { color:#555; font-size:24px; line-height:32px; }
 .col { vertical-align:top; padding:5px 12px 2px; }
@@ -39,7 +39,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 <body>
 
 <div id="hd">
-  <span class="t">雪碧成长日记</span>
+  <span class="t">瓜瓜成长日记</span>
   <span class="cat">
     <svg width="64" height="64" viewBox="0 0 48 48" aria-label="cat">
       <g fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
@@ -70,7 +70,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 <table id="mascot">
   <tr>
     <td class="catcell">
-      <img src="cat.png" width="380" height="380" alt="cat">
+      <img src="cat.png" width="190" height="190" alt="cat">
     </td>
     <td>
       <div class="bubble" id="greet1">&nbsp;</div>
@@ -109,8 +109,8 @@ function done2(d,i){ try{ return localStorage.getItem('hw_'+d+'_'+i)=='1'; }catc
 function tog2(i){ try{ localStorage.setItem('hw_'+cur+'_'+i, done2(cur,i)?'0':'1'); }catch(e){} }
 
 /* 随机打招呼 + 激励（每次刷新换一句） */
-var GREET=['早安，雪碧！','嗨，小主人～','雪碧你好呀！','今天也要元气满满哦！','喵～雪碧来啦！'];
-var PUSH =['完成打卡，你就是最棒的！','今天的作业也难不倒你，冲鸭！','读完一本书，就离聪明更近一步！','坚持一下，胜利就在眼前！','认真的样子最可爱啦！','每完成一项，就给自己点个赞！'];
+var GREET=['早安，瓜瓜！雪碧来啦～','嗨，瓜瓜～我是雪碧！','瓜瓜你好呀，雪碧报到！','瓜瓜今天也要元气满满哦！','喵～瓜瓜，雪碧来陪你啦！'];
+var PUSH =['完成打卡，瓜瓜最棒啦！','今天的作业也难不倒瓜瓜，冲鸭！','读完一本书，瓜瓜就离聪明更近一步！','坚持一下，胜利就在眼前，瓜瓜加油！','认真的样子最可爱啦，瓜瓜！','每完成一项，就给自己点个赞，瓜瓜！'];
 function rnd(a){ return a[Math.floor(Math.random()*a.length)]; }
 function setGreet(){
   document.getElementById('greet1').innerHTML=rnd(GREET);
