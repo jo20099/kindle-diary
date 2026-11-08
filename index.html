@@ -11,6 +11,7 @@ body { font-family:sans-serif; -webkit-text-size-adjust:none; line-height:1.15; 
 #hd { background:#000; color:#fff; font-size:34px; font-weight:bold; padding:8px 14px; overflow:hidden; }
 #hd .t { display:inline-block; vertical-align:middle; }
 #hd .cat { float:right; vertical-align:middle; }
+#hd .cat svg { display:block; }
 #bar { font-size:26px; padding:5px 10px; border-bottom:2px solid #000; }
 #bar b { font-size:30px; }
 .btn { display:inline-block; border:2px solid #000; padding:1px 10px; margin-left:5px; font-size:24px; color:#000; text-decoration:none; }
@@ -21,8 +22,9 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .wx { font-size:24px; }
 .wt3 { font-size:22px; color:#222; }
 #mascot td { vertical-align:middle; border-bottom:2px solid #000; padding:6px 10px; }
-#mascot .bubble { font-size:26px; line-height:34px; }
-#mascot .greet { color:#555; font-size:22px; }
+#mascot .catcell { width:200px; text-align:center; }
+#mascot .bubble { font-size:30px; line-height:40px; font-weight:bold; }
+#mascot .greet { color:#555; font-size:24px; line-height:32px; }
 .col { vertical-align:top; padding:5px 12px 2px; }
 .col + .col { border-left:2px solid #000; }
 .sec { font-size:26px; font-weight:bold; border-bottom:1px solid #000; padding-bottom:2px; margin-bottom:3px; }
@@ -38,7 +40,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 <div id="hd">
   <span class="t">雪碧成长日记</span>
   <span class="cat">
-    <svg width="40" height="40" viewBox="0 0 48 48" aria-label="cat">
+    <svg width="64" height="64" viewBox="0 0 48 48" aria-label="cat">
       <g fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
         <path d="M11 19 L16 9 L23 17"/>
         <path d="M37 19 L32 9 L25 17"/>
@@ -66,9 +68,9 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 
 <table id="mascot">
   <tr>
-    <td style="width:46px">
-      <svg width="38" height="38" viewBox="0 0 48 48" aria-label="cat">
-        <g fill="#fff" stroke="#000" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+    <td class="catcell">
+      <svg width="380" height="380" viewBox="0 0 48 48" aria-label="cat">
+        <g fill="#fff" stroke="#000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
           <path d="M11 19 L16 9 L23 17" fill="none"/>
           <path d="M37 19 L32 9 L25 17" fill="none"/>
           <circle cx="24" cy="27" r="13"/>
