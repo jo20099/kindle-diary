@@ -7,7 +7,7 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { background:#fff; color:#000; }
-body { font-family:sans-serif; -webkit-text-size-adjust:none; line-height:1.15; padding-bottom:150px; }
+body { font-family:sans-serif; -webkit-text-size-adjust:none; line-height:1.15; padding-bottom:300px; }
 #bar { font-size:26px; padding:8px 10px; border-bottom:2px solid #000; }
 #bar b { font-size:30px; }
 .btn { display:inline-block; border:2px solid #000; padding:1px 10px; margin-left:5px; font-size:24px; color:#000; text-decoration:none; }
@@ -18,16 +18,17 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 /* 作业/打卡条目：长文本自动换行（支持单条最多 ~150 字） */
 .item { font-size:28px; line-height:40px; word-break:break-all; }
 .item input { width:24px; height:24px; margin-right:7px; vertical-align:middle; }
-#diaryBox { padding:5px 14px 12px; }
-#diaryBox p { font-size:26px; line-height:38px; word-break:break-all; }
 .empty { font-size:24px; color:#555; line-height:38px; }
-/* 底部固定块：天气（左）+ 雪碧（右），固定钉在屏幕最底部 */
-#foot { position:fixed; left:0; bottom:0; width:100%; background:#fff; border-top:2px solid #000; }
-#foot td { vertical-align:top; }
-#foot .catc { width:210px; text-align:right; padding-right:8px; }
-#foot .catc .bubble { font-size:24px; line-height:32px; font-weight:bold; color:#333; word-break:break-all; }
-#foot .catc .greet { font-size:20px; line-height:26px; color:#555; margin-bottom:4px; word-break:break-all; }
-#foot .catc img { display:block; margin-left:auto; }
+
+/* 底部固定块（钉屏幕最底） */
+#bottom { position:fixed; left:0; bottom:0; width:100%; background:#fff; border-top:2px solid #000; }
+#bottom .mid td { vertical-align:top; }
+#bottom .diaryc { padding:6px 12px; }
+#bottom .diaryc p { font-size:26px; line-height:38px; word-break:break-all; }
+#bottom .catc { width:210px; text-align:right; padding:6px 8px 2px; }
+#bottom .catc .bubble { font-size:24px; line-height:32px; font-weight:bold; color:#333; word-break:break-all; }
+#bottom .catc .greet { font-size:20px; line-height:26px; color:#555; margin-bottom:4px; word-break:break-all; }
+#bottom .catc img { display:block; margin-left:auto; }
 #wt th { font-size:22px; font-weight:normal; color:#333; background:#eee; padding:3px 0; }
 #wt td { text-align:center; padding:4px 2px; border-bottom:2px solid #000; }
 .wd { font-size:24px; font-weight:bold; }
@@ -39,7 +40,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 
 <div id="bar">&nbsp;</div>
 
-<table>
+<table id="main">
   <tr>
     <td class="col" style="width:55%">
       <div class="sec">今日作业</div>
@@ -52,30 +53,29 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
   </tr>
 </table>
 
-<div id="diaryBox">
-  <div class="sec">成长日记</div>
-  <p id="diary">&nbsp;</p>
+<div id="bottom">
+  <table class="mid">
+    <tr>
+      <td class="diaryc">
+        <div class="sec">成长日记</div>
+        <p id="diary">&nbsp;</p>
+      </td>
+      <td class="catc">
+        <div class="bubble" id="greet1">&nbsp;</div>
+        <div class="greet" id="greet2">&nbsp;</div>
+        <img src="cat.png" width="190" height="190" alt="cat">
+      </td>
+    </tr>
+  </table>
+  <table id="wt">
+    <tr><th id="wtCity" colspan="3">天气 · 最近三天</th></tr>
+    <tr>
+      <td id="wt0"><span class="empty">…</span></td>
+      <td id="wt1"><span class="empty">…</span></td>
+      <td id="wt2"><span class="empty">…</span></td>
+    </tr>
+  </table>
 </div>
-
-<table id="foot">
-  <tr>
-    <td>
-      <table id="wt">
-        <tr><th id="wtCity" colspan="3">天气 · 最近三天</th></tr>
-        <tr>
-          <td id="wt0"><span class="empty">…</span></td>
-          <td id="wt1"><span class="empty">…</span></td>
-          <td id="wt2"><span class="empty">…</span></td>
-        </tr>
-      </table>
-    </td>
-    <td class="catc">
-      <div class="bubble" id="greet1">&nbsp;</div>
-      <div class="greet" id="greet2">&nbsp;</div>
-      <img src="cat.png" width="190" height="190" alt="cat">
-    </td>
-  </tr>
-</table>
 
 <script>
 var DATA=null, cur=null, latest=null;
