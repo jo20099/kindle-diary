@@ -2,227 +2,165 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>雪碧成长日记</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html,body { background:#fff; color:#000; font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; -webkit-text-size-adjust:100%; }
-  body { padding:12px 14px; max-width:800px; margin:0 auto; }
-  .topbar { background:#000; color:#fff; padding:12px 16px; font-size:32px; font-weight:bold; border-radius:6px; }
-  .subbar { display:flex; align-items:center; justify-content:space-between; margin:10px 2px 6px; gap:8px; flex-wrap:wrap; }
-  .nav button { background:#000; color:#fff; border:none; font-size:18px; padding:8px 12px; border-radius:8px; }
-  .nav .today-btn { background:#555; }
-  .date { font-size:22px; font-weight:bold; }
-  .date small { font-size:15px; color:#666; font-weight:normal; }
-  /* 天气条 */
-  .weather { display:flex; border:2px solid #000; border-radius:8px; overflow:hidden; margin:6px 0 12px; }
-  .wday { flex:1; text-align:center; padding:8px 4px; border-right:2px solid #999; }
-  .wday:last-child { border-right:none; }
-  .wlabel { font-size:18px; font-weight:bold; }
-  .wico { font-size:20px; margin:2px 0; }
-  .wtemp { font-size:18px; }
-  .wnote { font-size:16px; color:#999; padding:6px 2px; }
-  /* 板块 */
-  .sec { margin-bottom:12px; }
-  .sec-title { font-size:26px; font-weight:bold; border-bottom:2px solid #999; padding-bottom:4px; margin-bottom:6px; }
-  .item { display:flex; align-items:flex-start; font-size:26px; line-height:1.3; padding:6px 2px; border-bottom:1px solid #e0e0e0; }
-  .box { width:28px; height:28px; border:2px solid #000; border-radius:4px; margin-right:14px; flex:0 0 auto; margin-top:1px; text-align:center; font-size:22px; line-height:26px; }
-  .done .box { background:#000; color:#fff; }
-  .done .txt { text-decoration:line-through; color:#999; }
-  .diary { font-size:24px; line-height:1.5; padding:4px 2px; }
-  .empty { font-size:22px; color:#999; padding:8px 2px; }
-  .sec3 { display:flex; gap:14px; }
-  .sec3 .col { flex:1; min-width:0; }
-  .refresh { position:fixed; right:14px; bottom:14px; background:#000; color:#fff; border:none; font-size:18px; padding:12px 18px; border-radius:28px; }
-  .status { font-size:13px; color:#999; text-align:center; margin-top:6px; }
-  #err { color:#c00; font-size:15px; padding:8px; display:none; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { background:#fff; color:#000; }
+body { font-family:sans-serif; -webkit-text-size-adjust:none; }
+#hd { background:#000; color:#fff; font-size:36px; font-weight:bold; padding:10px 14px; }
+#bar { font-size:28px; padding:8px 10px; border-bottom:3px solid #000; }
+#bar b { font-size:32px; }
+.btn { display:inline-block; border:2px solid #000; padding:2px 12px; margin-left:6px; font-size:26px; color:#000; text-decoration:none; }
+table { width:100%; border-collapse:collapse; table-layout:fixed; }
+#wt th { font-size:24px; font-weight:normal; color:#333; border-bottom:2px solid #000; padding:4px 0; background:#eee; }
+#wt td { text-align:center; vertical-align:top; padding:6px 2px; border-bottom:3px solid #000; }
+.wd  { font-size:28px; font-weight:bold; }
+.wx  { font-size:28px; }
+.wt3 { font-size:26px; color:#222; }
+td.col { vertical-align:top; padding:8px 12px 4px; }
+td.col + td.col { border-left:3px solid #000; }
+.sec { font-size:28px; font-weight:bold; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:6px; }
+.item { font-size:32px; line-height:52px; }
+.item input { width:28px; height:28px; margin-right:8px; vertical-align:middle; }
+#diaryBox { padding:8px 14px 14px; }
+#diaryBox p { font-size:30px; line-height:46px; margin-top:4px; }
+.empty { font-size:28px; color:#555; line-height:44px; }
 </style>
 </head>
 <body>
-  <div class="topbar" id="title">雪碧成长日记</div>
 
-  <div class="subbar">
-    <span class="date" id="date"></span>
-    <span class="nav">
-      <button onclick="goDay(-1)">←前</button>
-      <button class="today-btn" onclick="goToday()">今天</button>
-      <button onclick="goDay(1)">后→</button>
-    </span>
-  </div>
+<div id="hd">雪碧成长日记</div>
+<div id="bar">&nbsp;</div>
 
-  <div class="weather" id="weather"><div class="wnote" id="wnote">天气加载中…</div></div>
+<table id="wt">
+  <tr><th id="wtCity" colspan="3">天气</th></tr>
+  <tr>
+    <td id="wt0"><span class="empty">…</span></td>
+    <td id="wt1"><span class="empty">…</span></td>
+    <td id="wt2"><span class="empty">…</span></td>
+  </tr>
+</table>
 
-  <div class="sec3">
-    <div class="col">
-      <div class="sec">
-        <div class="sec-title">打卡</div>
-        <div id="checklist"></div>
-      </div>
-      <div class="sec">
-        <div class="sec-title">作业</div>
-        <div id="homework"></div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="sec">
-        <div class="sec-title">日记</div>
-        <div class="diary" id="diary"></div>
-      </div>
-    </div>
-  </div>
+<table>
+  <tr>
+    <td class="col" style="width:52%">
+      <div class="sec">今日打卡</div>
+      <div id="ck"></div>
+    </td>
+    <td class="col">
+      <div class="sec">今日作业</div>
+      <div id="hw"></div>
+    </td>
+  </tr>
+</table>
 
-  <button class="refresh" onclick="loadData()">刷新</button>
-  <div class="status" id="status"></div>
-  <div id="err"></div>
+<div id="diaryBox">
+  <div class="sec">成长日记</div>
+  <p id="diary">&nbsp;</p>
+</div>
 
 <script>
-  var DATA=null;
-  var currentDate=null;
-  var weatherLoaded=false;
+var DATA = null;
+var cur = null;      // 当前显示日期 YYYY-MM-DD
+var latest = null;   // 数据里最新一天
 
-  function setStatus(t){ var s=document.getElementById('status'); if(s) s.innerHTML=t; }
-  function showErr(t){ var e=document.getElementById('err'); if(e){ e.style.display='block'; e.innerHTML=t; } }
-  function clearErr(){ var e=document.getElementById('err'); if(e) e.style.display='none'; }
-  function pad(n){ return ('0'+n).slice(-2); }
-  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-  function shiftDate(str, delta){
-    var p=str.split('-'); var d=new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
-    d.setDate(d.getDate()+delta);
-    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-  }
-  function storeKey(date, idx){ return 'sb_'+date+'_'+idx; }
+function pad(n){ return (n<10?'0':'')+n; }
+function fmtDate(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function weekCN(d){ return '周'+'日一二三四五六'.charAt(d.getDay()); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  function pickDefault(){
-    if(DATA && DATA.days){ var keys=Object.keys(DATA.days).sort(); return keys[keys.length-1] || todayStr(); }
-    return (DATA && DATA.date) ? DATA.date : todayStr();
-  }
+/* ---- 打卡勾选（按日期隔离存 localStorage）---- */
+function done(d,i){ try{ return localStorage.getItem('ck_'+d+'_'+i)=='1'; }catch(e){ return false; } }
+function tog(i){ try{ localStorage.setItem('ck_'+cur+'_'+i, done(cur,i)?'0':'1'); }catch(e){} }
+function done2(d,i){ try{ return localStorage.getItem('hw_'+d+'_'+i)=='1'; }catch(e){ return false; } }
+function tog2(i){ try{ localStorage.setItem('hw_'+cur+'_'+i, done2(cur,i)?'0':'1'); }catch(e){} }
 
-  function renderList(elId, arr, date){
-    var el=document.getElementById(elId); if(!el) return; el.innerHTML='';
-    if(!arr || arr.length===0){ el.innerHTML='<div class="empty">（无）</div>'; return; }
-    for(var i=0;i<arr.length;i++){
-      var key=storeKey(date,i);
-      var checked=false;
-      try{ checked = localStorage.getItem(key)==='1'; }catch(e){}
-      var div=document.createElement('div');
-      div.className='item'+(checked?' done':'');
-      var box=document.createElement('div'); box.className='box'; box.innerHTML=checked?'✓':'';
-      var txt=document.createElement('div'); txt.className='txt'; txt.innerHTML=arr[i];
-      (function(idx,div,box){
-        div.onclick=function(){
-          var k=storeKey(date,idx);
-          var now = (localStorage.getItem(k)==='1');
-          try{ localStorage.setItem(k, now?'0':'1'); }catch(e){}
-          var nd = !now;
-          div.className='item'+(nd?' done':'');
-          box.innerHTML=nd?'✓':'';
-        };
-      })(i,div,box);
-      div.appendChild(box); div.appendChild(txt); el.appendChild(div);
+/* ---- 拉数据 ---- */
+function load(){
+  var x = new XMLHttpRequest();
+  x.open('GET','data.json?t='+(new Date()).getTime(),true);
+  x.onreadystatechange = function(){
+    if(x.readyState==4 && x.status==200){
+      try{ DATA = JSON.parse(x.responseText); }catch(e){ DATA=null; }
+      if(!DATA) return;
+      var ks=[], days=DATA.days||{}, k;
+      for(k in days){ if(days.hasOwnProperty(k)) ks.push(k); }
+      ks.sort();
+      latest = ks.length ? ks[ks.length-1] : fmtDate(new Date());
+      if(!cur) cur = latest;
+      render();
+      weather();
     }
-  }
-
-  function renderDay(){
-    if(!DATA || !currentDate) return;
-    if(DATA.title) document.getElementById('title').innerHTML=DATA.title;
-    var isToday = (currentDate===todayStr());
-    document.getElementById('date').innerHTML = currentDate + (isToday?' <small>（今天）</small>':'');
-
-    var entry=null;
-    if(DATA.days && DATA.days[currentDate]){
-      entry = DATA.days[currentDate];
-    } else if(!DATA.days){
-      entry = { checklist:DATA.checklist||[], homework:DATA.homework||[], diary:DATA.diary||'' };
-    }
-
-    if(!entry){
-      document.getElementById('checklist').innerHTML='<div class="empty">这天没录入</div>';
-      document.getElementById('homework').innerHTML='<div class="empty">（无）</div>';
-      document.getElementById('diary').innerHTML='<div class="empty">（无）</div>';
-      return;
-    }
-    renderList('checklist', entry.checklist||[], currentDate);
-    renderList('homework', entry.homework||[], currentDate);
-    document.getElementById('diary').innerHTML=entry.diary||'<div class="empty">（无）</div>';
-  }
-
-  function goDay(delta){ if(!currentDate) return; currentDate=shiftDate(currentDate,delta); renderDay(); }
-  function goToday(){ currentDate=todayStr(); renderDay(); }
-
-  // 天气：Open-Meteo 免费接口，无需密钥，支持 CORS
-  var WMO = {
-    0:'晴',1:'晴间多云',2:'多云',3:'阴',
-    45:'雾',48:'雾凇',
-    51:'毛毛雨',53:'毛毛雨',55:'毛毛雨',
-    56:'冻雨',57:'冻雨',
-    61:'小雨',63:'中雨',65:'大雨',
-    66:'冻雨',67:'冻雨',
-    71:'小雪',73:'中雪',75:'大雪',77:'雪粒',
-    80:'阵雨',81:'阵雨',82:'强阵雨',
-    85:'阵雪',86:'阵雪',
-    95:'雷阵雨',96:'雷阵雨冰雹',99:'雷阵雨冰雹'
   };
-  var WDAY = ['今天','明天','后天'];
-  function renderWeather(){
-    var w=DATA && DATA.weather;
-    var note=document.getElementById('wnote');
-    var box=document.getElementById('weather');
-    if(!w || w.lat==null || w.lon==null){
-      box.innerHTML='<div class="wnote">未配置地点（后台设置经纬度）</div>';
-      return;
-    }
-    var url='https://api.open-meteo.com/v1/forecast?latitude='+w.lat+'&longitude='+w.lon+
-           '&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3';
-    var xhr=new XMLHttpRequest();
-    xhr.open('GET',url,true);
-    xhr.onreadystatechange=function(){
-      if(xhr.readyState!==4) return;
-      if(xhr.status>=200 && xhr.status<300){
-        try{
-          var d=JSON.parse(xhr.responseText).daily;
-          var html='';
-          for(var i=0;i<3;i++){
-            var code=d.weather_code[i];
-            var txt=WMO[code]!=null?WMO[code]:('代码'+code);
-            html+='<div class="wday"><div class="wlabel">'+(WDAY[i]||d.time[i])+'</div>'+
-                  '<div class="wico">'+txt+'</div>'+
-                  '<div class="wtemp">'+Math.round(d.temperature_2m_max[i])+'°/'+Math.round(d.temperature_2m_min[i])+'°</div></div>';
-          }
-          if(w.city) html='<div style="flex:0 0 100%;font-size:18px;font-weight:bold;padding:6px 4px;border-bottom:2px solid #999;">'+w.city+' 天气</div>'+html;
-          box.innerHTML=html;
-        }catch(e){ box.innerHTML='<div class="wnote">天气解析失败</div>'; }
-      } else {
-        box.innerHTML='<div class="wnote">天气获取失败（'+xhr.status+'）</div>';
-      }
-    };
-    xhr.send();
-  }
+  x.send(null);
+}
 
-  function loadData(){
-    setStatus('正在加载…');
-    var xhr=new XMLHttpRequest();
-    xhr.open('GET','data.json?_='+Date.now(),true);
-    xhr.setRequestHeader('Cache-Control','no-cache');
-    xhr.onreadystatechange=function(){
-      if(xhr.readyState===4){
-        if(xhr.status>=200 && xhr.status<300){
-          try{
-            DATA=JSON.parse(xhr.responseText);
-            clearErr();
-            if(!currentDate) currentDate=pickDefault();
-            renderDay();
-            if(!weatherLoaded){ renderWeather(); weatherLoaded=true; }
-            setStatus('已更新 '+new Date().toLocaleTimeString());
-          }catch(e){ showErr('数据解析失败'); setStatus(''); }
-        }else{
-          showErr('加载失败（'+xhr.status+'），请稍后点刷新'); setStatus('');
-        }
-      }
-    };
-    xhr.send();
+/* ---- 渲染某一天 ---- */
+function render(){
+  var days=(DATA&&DATA.days)||{}, dd=days[cur]||{};
+  var dt=new Date(cur.replace(/-/g,'/'));
+  var h='<b>'+cur+' '+(isNaN(dt)?'':weekCN(dt))+'</b>'
+      +'<a class="btn" href="javascript:void(0)" onclick="page(-1)">‹前</a>'
+      +'<a class="btn" href="javascript:void(0)" onclick="page(1)">后›</a>'
+      +'<a class="btn" href="javascript:void(0)" onclick="goLatest()">今天</a>'
+      +'<a class="btn" href="javascript:void(0)" onclick="load()">刷新</a>';
+  document.getElementById('bar').innerHTML=h;
+
+  document.getElementById('hd').innerHTML=esc((DATA&&DATA.title)||'成长日记');
+
+  var ck=dd.checklist||[], s='', i;
+  if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
+  for(i=0;i<ck.length;i++){
+    s+='<div class="item"><input type="checkbox"'+(done(cur,i)?' checked':'')+' onclick="tog('+i+')"> '+esc(ck[i])+'</div>';
   }
-  loadData();
-  setInterval(loadData, 60000);
+  document.getElementById('ck').innerHTML=s;
+
+  var hw=dd.homework||[], t='', j;
+  if(!hw.length) t='<div class="empty">没有作业，痛快玩！</div>';
+  for(j=0;j<hw.length;j++){
+    t+='<div class="item"><input type="checkbox"'+(done2(cur,j)?' checked':'')+' onclick="tog2('+j+')"> '+esc(hw[j])+'</div>';
+  }
+  document.getElementById('hw').innerHTML=t;
+
+  document.getElementById('diary').innerHTML = dd.diary ? esc(dd.diary) : '<span class="empty">这一天还没有日记～</span>';
+}
+
+function page(n){
+  var dt=new Date(cur.replace(/-/g,'/'));
+  dt.setDate(dt.getDate()+n);
+  cur=fmtDate(dt);
+  render();
+}
+function goLatest(){ cur=latest; render(); }
+
+/* ---- 天气（Open-Meteo，最近三天，一行三列）---- */
+var WMO={0:'晴',1:'晴',2:'多云',3:'阴',45:'雾',48:'雾',51:'毛毛雨',53:'毛毛雨',55:'毛毛雨',56:'冻毛毛雨',57:'冻毛毛雨',61:'小雨',63:'中雨',65:'大雨',66:'冻雨',67:'冻雨',71:'小雪',73:'中雪',75:'大雪',77:'米雪',80:'阵雨',81:'阵雨',82:'强阵雨',85:'阵雪',86:'阵雪',95:'雷阵雨',96:'雷阵雨',99:'雷冰雹'};
+function weather(){
+  if(!DATA||!DATA.weather) return;
+  var w=DATA.weather;
+  document.getElementById('wtCity').innerHTML=esc(w.city||'')+' · 最近三天';
+  var url='https://api.open-meteo.com/v1/forecast?latitude='+w.lat+'&longitude='+w.lon
+         +'&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3';
+  var x=new XMLHttpRequest();
+  x.open('GET',url,true);
+  x.onreadystatechange=function(){
+    if(x.readyState==4&&x.status==200){
+      var j; try{ j=JSON.parse(x.responseText).daily; }catch(e){ return; }
+      var names=['今天','明天','后天'];
+      for(var i=0;i<3;i++){
+        var wx=WMO[j.weather_code[i]]||'—';
+        var hi=Math.round(j.temperature_2m_max[i]), lo=Math.round(j.temperature_2m_min[i]);
+        document.getElementById('wt'+i).innerHTML=
+          '<div class="wd">'+names[i]+'</div><div class="wx">'+wx+'</div><div class="wt3">'+hi+'° / '+lo+'°</div>';
+      }
+    }
+  };
+  x.send(null);
+}
+
+load();
+setInterval(load, 60000);
 </script>
 </body>
 </html>
