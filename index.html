@@ -7,30 +7,52 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { background:#fff; color:#000; }
-body { font-family:sans-serif; -webkit-text-size-adjust:none; }
-#hd { background:#000; color:#fff; font-size:36px; font-weight:bold; padding:10px 14px; }
-#bar { font-size:28px; padding:8px 10px; border-bottom:3px solid #000; }
-#bar b { font-size:32px; }
-.btn { display:inline-block; border:2px solid #000; padding:2px 12px; margin-left:6px; font-size:26px; color:#000; text-decoration:none; }
+body { font-family:sans-serif; -webkit-text-size-adjust:none; line-height:1.15; }
+#hd { background:#000; color:#fff; font-size:34px; font-weight:bold; padding:8px 14px; overflow:hidden; }
+#hd .t { display:inline-block; vertical-align:middle; }
+#hd .cat { float:right; vertical-align:middle; }
+#bar { font-size:26px; padding:5px 10px; border-bottom:2px solid #000; }
+#bar b { font-size:30px; }
+.btn { display:inline-block; border:2px solid #000; padding:1px 10px; margin-left:5px; font-size:24px; color:#000; text-decoration:none; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
-#wt th { font-size:24px; font-weight:normal; color:#333; border-bottom:2px solid #000; padding:4px 0; background:#eee; }
-#wt td { text-align:center; vertical-align:top; padding:6px 2px; border-bottom:3px solid #000; }
-.wd  { font-size:28px; font-weight:bold; }
-.wx  { font-size:28px; }
-.wt3 { font-size:26px; color:#222; }
-td.col { vertical-align:top; padding:8px 12px 4px; }
-td.col + td.col { border-left:3px solid #000; }
-.sec { font-size:28px; font-weight:bold; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:6px; }
-.item { font-size:32px; line-height:52px; }
-.item input { width:28px; height:28px; margin-right:8px; vertical-align:middle; }
-#diaryBox { padding:8px 14px 14px; }
-#diaryBox p { font-size:30px; line-height:46px; margin-top:4px; }
-.empty { font-size:28px; color:#555; line-height:44px; }
+#wt th { font-size:22px; font-weight:normal; color:#333; background:#eee; padding:3px 0; }
+#wt td { text-align:center; padding:4px 2px; border-bottom:2px solid #000; }
+.wd { font-size:24px; font-weight:bold; }
+.wx { font-size:24px; }
+.wt3 { font-size:22px; color:#222; }
+#mascot td { vertical-align:middle; border-bottom:2px solid #000; padding:6px 10px; }
+#mascot .bubble { font-size:26px; line-height:34px; }
+#mascot .greet { color:#555; font-size:22px; }
+.col { vertical-align:top; padding:5px 12px 2px; }
+.col + .col { border-left:2px solid #000; }
+.sec { font-size:26px; font-weight:bold; border-bottom:1px solid #000; padding-bottom:2px; margin-bottom:3px; }
+.item { font-size:28px; line-height:40px; }
+.item input { width:24px; height:24px; margin-right:7px; vertical-align:middle; }
+#diaryBox { padding:5px 14px 12px; }
+#diaryBox p { font-size:26px; line-height:38px; }
+.empty { font-size:24px; color:#555; line-height:38px; }
 </style>
 </head>
 <body>
 
-<div id="hd">雪碧成长日记</div>
+<div id="hd">
+  <span class="t">雪碧成长日记</span>
+  <span class="cat">
+    <svg width="40" height="40" viewBox="0 0 48 48" aria-label="cat">
+      <g fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M11 19 L16 9 L23 17"/>
+        <path d="M37 19 L32 9 L25 17"/>
+        <circle cx="24" cy="27" r="13"/>
+        <circle cx="19" cy="25" r="1.7" fill="#fff"/>
+        <circle cx="29" cy="25" r="1.7" fill="#fff"/>
+        <path d="M24 29 l-2.4 2 h4.8 z" fill="#fff"/>
+        <path d="M24 31 v3 M24 34 q-3 2 -6 1 M24 34 q3 2 6 1"/>
+        <path d="M11 27 h6 M11 31 h6 M37 27 h-6 M37 31 h-6"/>
+      </g>
+    </svg>
+  </span>
+</div>
+
 <div id="bar">&nbsp;</div>
 
 <table id="wt">
@@ -39,6 +61,29 @@ td.col + td.col { border-left:3px solid #000; }
     <td id="wt0"><span class="empty">…</span></td>
     <td id="wt1"><span class="empty">…</span></td>
     <td id="wt2"><span class="empty">…</span></td>
+  </tr>
+</table>
+
+<table id="mascot">
+  <tr>
+    <td style="width:46px">
+      <svg width="38" height="38" viewBox="0 0 48 48" aria-label="cat">
+        <g fill="#fff" stroke="#000" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M11 19 L16 9 L23 17" fill="none"/>
+          <path d="M37 19 L32 9 L25 17" fill="none"/>
+          <circle cx="24" cy="27" r="13"/>
+          <circle cx="19" cy="25" r="1.7" fill="#000" stroke="none"/>
+          <circle cx="29" cy="25" r="1.7" fill="#000" stroke="none"/>
+          <path d="M24 29 l-2.4 2 h4.8 z" fill="#000" stroke="none"/>
+          <path d="M24 31 v3 M24 34 q-3 2 -6 1 M24 34 q3 2 6 1" fill="none"/>
+          <path d="M11 27 h6 M11 31 h6 M37 27 h-6 M37 31 h-6" fill="none"/>
+        </g>
+      </svg>
+    </td>
+    <td>
+      <div class="bubble" id="greet1">&nbsp;</div>
+      <div class="greet" id="greet2">&nbsp;</div>
+    </td>
   </tr>
 </table>
 
@@ -61,53 +106,53 @@ td.col + td.col { border-left:3px solid #000; }
 </div>
 
 <script>
-var DATA = null;
-var cur = null;      // 当前显示日期 YYYY-MM-DD
-var latest = null;   // 数据里最新一天
-
+var DATA=null, cur=null, latest=null;
 function pad(n){ return (n<10?'0':'')+n; }
 function fmtDate(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 function weekCN(d){ return '周'+'日一二三四五六'.charAt(d.getDay()); }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-/* ---- 打卡勾选（按日期隔离存 localStorage）---- */
 function done(d,i){ try{ return localStorage.getItem('ck_'+d+'_'+i)=='1'; }catch(e){ return false; } }
 function tog(i){ try{ localStorage.setItem('ck_'+cur+'_'+i, done(cur,i)?'0':'1'); }catch(e){} }
 function done2(d,i){ try{ return localStorage.getItem('hw_'+d+'_'+i)=='1'; }catch(e){ return false; } }
 function tog2(i){ try{ localStorage.setItem('hw_'+cur+'_'+i, done2(cur,i)?'0':'1'); }catch(e){} }
 
-/* ---- 拉数据 ---- */
+/* 随机打招呼 + 激励（每次刷新换一句） */
+var GREET=['早安，雪碧！','嗨，小主人～','雪碧你好呀！','今天也要元气满满哦！','喵～雪碧来啦！'];
+var PUSH =['完成打卡，你就是最棒的！','今天的作业也难不倒你，冲鸭！','读完一本书，就离聪明更近一步！','坚持一下，胜利就在眼前！','认真的样子最可爱啦！','每完成一项，就给自己点个赞！'];
+function rnd(a){ return a[Math.floor(Math.random()*a.length)]; }
+function setGreet(){
+  document.getElementById('greet1').innerHTML=rnd(GREET);
+  document.getElementById('greet2').innerHTML=rnd(PUSH);
+}
+
 function load(){
-  var x = new XMLHttpRequest();
+  var x=new XMLHttpRequest();
   x.open('GET','data.json?t='+(new Date()).getTime(),true);
-  x.onreadystatechange = function(){
+  x.onreadystatechange=function(){
     if(x.readyState==4 && x.status==200){
-      try{ DATA = JSON.parse(x.responseText); }catch(e){ DATA=null; }
+      try{ DATA=JSON.parse(x.responseText); }catch(e){ DATA=null; }
       if(!DATA) return;
       var ks=[], days=DATA.days||{}, k;
       for(k in days){ if(days.hasOwnProperty(k)) ks.push(k); }
       ks.sort();
-      latest = ks.length ? ks[ks.length-1] : fmtDate(new Date());
-      if(!cur) cur = latest;
-      render();
-      weather();
+      latest=ks.length?ks[ks.length-1]:fmtDate(new Date());
+      if(!cur) cur=latest;
+      render(); setGreet(); weather();
     }
   };
   x.send(null);
 }
 
-/* ---- 渲染某一天 ---- */
 function render(){
   var days=(DATA&&DATA.days)||{}, dd=days[cur]||{};
   var dt=new Date(cur.replace(/-/g,'/'));
-  var h='<b>'+cur+' '+(isNaN(dt)?'':weekCN(dt))+'</b>'
-      +'<a class="btn" href="javascript:void(0)" onclick="page(-1)">‹前</a>'
-      +'<a class="btn" href="javascript:void(0)" onclick="page(1)">后›</a>'
-      +'<a class="btn" href="javascript:void(0)" onclick="goLatest()">今天</a>'
-      +'<a class="btn" href="javascript:void(0)" onclick="load()">刷新</a>';
-  document.getElementById('bar').innerHTML=h;
-
-  document.getElementById('hd').innerHTML=esc((DATA&&DATA.title)||'成长日记');
+  document.getElementById('hd').getElementsByTagName('span')[0].innerHTML=esc((DATA&&DATA.title)||'成长日记');
+  document.getElementById('bar').innerHTML=
+    '<b>'+cur+' '+(isNaN(dt)?'':weekCN(dt))+'</b>'
+    +'<a class="btn" href="javascript:void(0)" onclick="page(-1)">‹前</a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="page(1)">后›</a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="goLatest()">今天</a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="load()">刷新</a>';
 
   var ck=dd.checklist||[], s='', i;
   if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
@@ -123,25 +168,17 @@ function render(){
   }
   document.getElementById('hw').innerHTML=t;
 
-  document.getElementById('diary').innerHTML = dd.diary ? esc(dd.diary) : '<span class="empty">这一天还没有日记～</span>';
+  document.getElementById('diary').innerHTML=dd.diary?esc(dd.diary):'<span class="empty">这一天还没有日记～</span>';
 }
-
-function page(n){
-  var dt=new Date(cur.replace(/-/g,'/'));
-  dt.setDate(dt.getDate()+n);
-  cur=fmtDate(dt);
-  render();
-}
+function page(n){ var dt=new Date(cur.replace(/-/g,'/')); dt.setDate(dt.getDate()+n); cur=fmtDate(dt); render(); }
 function goLatest(){ cur=latest; render(); }
 
-/* ---- 天气（Open-Meteo，最近三天，一行三列）---- */
 var WMO={0:'晴',1:'晴',2:'多云',3:'阴',45:'雾',48:'雾',51:'毛毛雨',53:'毛毛雨',55:'毛毛雨',56:'冻毛毛雨',57:'冻毛毛雨',61:'小雨',63:'中雨',65:'大雨',66:'冻雨',67:'冻雨',71:'小雪',73:'中雪',75:'大雪',77:'米雪',80:'阵雨',81:'阵雨',82:'强阵雨',85:'阵雪',86:'阵雪',95:'雷阵雨',96:'雷阵雨',99:'雷冰雹'};
 function weather(){
   if(!DATA||!DATA.weather) return;
   var w=DATA.weather;
   document.getElementById('wtCity').innerHTML=esc(w.city||'')+' · 最近三天';
-  var url='https://api.open-meteo.com/v1/forecast?latitude='+w.lat+'&longitude='+w.lon
-         +'&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3';
+  var url='https://api.open-meteo.com/v1/forecast?latitude='+w.lat+'&longitude='+w.lon+'&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3';
   var x=new XMLHttpRequest();
   x.open('GET',url,true);
   x.onreadystatechange=function(){
@@ -151,16 +188,14 @@ function weather(){
       for(var i=0;i<3;i++){
         var wx=WMO[j.weather_code[i]]||'—';
         var hi=Math.round(j.temperature_2m_max[i]), lo=Math.round(j.temperature_2m_min[i]);
-        document.getElementById('wt'+i).innerHTML=
-          '<div class="wd">'+names[i]+'</div><div class="wx">'+wx+'</div><div class="wt3">'+hi+'° / '+lo+'°</div>';
+        document.getElementById('wt'+i).innerHTML='<div class="wd">'+names[i]+'</div><div class="wx">'+wx+'</div><div class="wt3">'+hi+'° / '+lo+'°</div>';
       }
     }
   };
   x.send(null);
 }
-
 load();
-setInterval(load, 60000);
+setInterval(load,60000);
 </script>
 </body>
 </html>
