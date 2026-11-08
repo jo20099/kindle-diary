@@ -9,8 +9,10 @@
   h1{ font-size:24px; margin-bottom:14px; }
   label{ display:block; font-weight:bold; margin:14px 0 6px; }
   input[type=text], textarea{ width:100%; padding:10px; font-size:16px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; font-family:inherit; }
-  textarea{ height:120px; resize:vertical; }
+  textarea{ height:110px; resize:vertical; }
   .hint{ font-size:13px; color:#888; margin-top:4px; }
+  .locrow{ display:flex; gap:10px; }
+  .locrow > div{ flex:1; }
   button{ background:#000; color:#fff; border:none; padding:14px 22px; font-size:17px; border-radius:8px; margin-top:18px; cursor:pointer; }
   #status{ margin-top:14px; font-size:15px; padding:10px; border-radius:6px; }
   .ok{ background:#e6f4ea; color:#137333; }
@@ -22,7 +24,7 @@
 </head>
 <body>
   <h1>雪碧成长日记 · 管理后台</h1>
-  <label>标题（全局，所有日期共用）</label>
+  <label>标题（全局）</label>
   <input type="text" id="title" value="雪碧成长日记">
   <label>日期（YYYY-MM-DD，留空为今天）</label>
   <input type="text" id="date" placeholder="2026-11-08">
@@ -34,10 +36,20 @@
   <label>成长日记</label>
   <textarea id="diary" style="height:80px;"></textarea>
 
+  <div style="margin-top:18px; padding-top:14px; border-top:1px solid #eee;">
+    <label>天气地点（看板顶部显示最近三天预报）</label>
+    <input type="text" id="city" placeholder="北京">
+    <div class="locrow">
+      <div><label style="margin-top:8px;">纬度 lat</label><input type="text" id="lat" placeholder="39.9042"></div>
+      <div><label style="margin-top:8px;">经度 lon</label><input type="text" id="lon" placeholder="116.4074"></div>
+    </div>
+    <div class="hint">经纬度可在 maps.google.com 上点选位置后从地址栏 URL 取（如 ?q=39.9042,116.4074）。留空则看板不显示天气。数据源：Open-Meteo（免费、无需密钥）。</div>
+  </div>
+
   <div class="token">
-    <label>GitHub Token（仅本浏览器保存，用于保存数据）</label>
+    <label>GitHub Token（仅本浏览器保存）</label>
     <input type="text" id="token" placeholder="ghp_...">
-    <div class="hint">需要 repo 权限的 personal access token。保存在本浏览器 localStorage，不会上传到任何第三方。目标仓库：jo20099/kindle-diary，文件：data.json。数据按日期归档，可回看历史。</div>
+    <div class="hint">需要 repo 权限的 personal access token。保存在本浏览器 localStorage，不上传第三方。仓库：jo20099/kindle-diary。</div>
   </div>
 
   <button onclick="save()">保存并发布</button>
@@ -54,7 +66,7 @@
   function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str.replace(/\s/g,'')))); }
   function splitLines(s){ return s.split('\n').map(function(x){return x.trim();}).filter(function(x){return x;}); }
 
-  var CURRENT=null; // 已加载的整份数据
+  var CURRENT=null;
 
   function renderDatedList(){
     var box=document.getElementById('datedList');
@@ -88,12 +100,11 @@
       if(xhr.status>=200 && xhr.status<300){
         try{
           var obj=JSON.parse(xhr.responseText);
-          var content=b64DecodeUnicode(obj.content);
-          var data=JSON.parse(content);
+          var data=JSON.parse(b64DecodeUnicode(obj.content));
           cb(data, obj.sha, null);
         }catch(e){ cb(null,null,'解析现有数据失败'); }
       } else if(xhr.status===404){
-        cb({}, null, null); // 文件不存在，当作空
+        cb({}, null, null);
       } else {
         cb(null,null,'读取仓库失败（'+xhr.status+'）');
       }
@@ -101,7 +112,6 @@
     xhr.send();
   }
 
-  // 初始化：载入标题、最近一天、历史列表
   (function(){
     document.getElementById('token').value=loadToken();
     var xhr=new XMLHttpRequest();
@@ -117,6 +127,11 @@
           else { date=d.date||todayStr(); }
           document.getElementById('date').value=date;
           loadDay(date);
+          if(d.weather){
+            document.getElementById('city').value=d.weather.city||'';
+            document.getElementById('lat').value=d.weather.lat!=null?d.weather.lat:'';
+            document.getElementById('lon').value=d.weather.lon!=null?d.weather.lon:'';
+          }
           renderDatedList();
         }catch(e){}
       }
@@ -124,10 +139,7 @@
     xhr.send();
   })();
 
-  // 切换日期时，同步表单内容
-  document.getElementById('date').addEventListener('change', function(){
-    loadDay(this.value.trim());
-  });
+  document.getElementById('date').addEventListener('change', function(){ loadDay(this.value.trim()); });
 
   function save(){
     var token=document.getElementById('token').value.trim();
@@ -140,13 +152,21 @@
       homework: splitLines(document.getElementById('homework').value),
       diary: document.getElementById('diary').value
     };
+    var city=document.getElementById('city').value.trim();
+    var lat=parseFloat(document.getElementById('lat').value.trim());
+    var lon=parseFloat(document.getElementById('lon').value.trim());
+    var weather={};
+    if(city) weather.city=city;
+    if(!isNaN(lat)) weather.lat=lat;
+    if(!isNaN(lon)) weather.lon=lon;
 
     fetchData(function(data, sha, err){
       if(err){ setStatus(err,'bad'); return; }
       if(!data || typeof data!=='object') data={};
-      if(!data.title) data.title=title; else data.title=title;
+      data.title=title;
       if(!data.days) data.days={};
       data.days[date]=entry;
+      data.weather=weather;
 
       var content=JSON.stringify(data,null,2);
       var body={ message:'update '+date+' via admin', content: b64EncodeUnicode(content) };
@@ -161,7 +181,7 @@
         if(putXhr.readyState!==4) return;
         if(putXhr.status>=200 && putXhr.status<300){
           CURRENT=data; renderDatedList();
-          setStatus('已保存 '+date+'！约 1 分钟后在 Kindle 上点「刷新」，翻到该日期即可看到。','ok');
+          setStatus('已保存 '+date+'！约 1 分钟后在 Kindle 上点「刷新」即可看到。','ok');
         }else{
           var m='保存失败（'+putXhr.status+'）';
           try{ m+='：'+JSON.parse(putXhr.responseText).message; }catch(e){}
