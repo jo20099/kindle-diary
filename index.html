@@ -9,7 +9,11 @@
   html,body { background:#fff; color:#000; font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; -webkit-text-size-adjust:100%; }
   body { padding:18px; max-width:800px; margin:0 auto; }
   .topbar { background:#000; color:#fff; padding:14px 18px; font-size:30px; font-weight:bold; border-radius:6px; }
-  .date { font-size:18px; color:#555; margin:10px 2px 18px; }
+  .nav { display:flex; align-items:center; justify-content:space-between; margin:12px 0 18px; gap:8px; flex-wrap:wrap; }
+  .nav button { background:#000; color:#fff; border:none; font-size:18px; padding:10px 14px; border-radius:8px; }
+  .nav .today-btn { background:#555; }
+  .date { font-size:20px; font-weight:bold; color:#000; }
+  .date small { font-size:14px; color:#777; font-weight:normal; }
   .sec { margin-bottom:22px; }
   .sec-title { font-size:24px; font-weight:bold; border-bottom:2px solid #999; padding-bottom:6px; margin-bottom:12px; }
   .item { display:flex; align-items:flex-start; font-size:22px; line-height:1.4; padding:10px 4px; border-bottom:1px solid #e0e0e0; }
@@ -17,6 +21,7 @@
   .done .box { background:#000; color:#fff; }
   .done .txt { text-decoration:line-through; color:#999; }
   .diary { font-size:22px; line-height:1.6; padding:10px 4px; }
+  .empty { font-size:20px; color:#999; padding:14px 4px; }
   .refresh { position:fixed; right:16px; bottom:16px; background:#000; color:#fff; border:none; font-size:20px; padding:14px 20px; border-radius:30px; }
   .status { font-size:14px; color:#999; text-align:center; margin-top:10px; }
   #err { color:#c00; font-size:16px; padding:10px; display:none; }
@@ -24,7 +29,12 @@
 </head>
 <body>
   <div class="topbar" id="title">雪碧成长日记</div>
-  <div class="date" id="date"></div>
+  <div class="nav">
+    <button onclick="goDay(-1)">← 前一天</button>
+    <span class="date" id="date"></span>
+    <button onclick="goDay(1)">后一天 →</button>
+    <button class="today-btn" onclick="goToday()">今天</button>
+  </div>
   <div id="err"></div>
   <div class="sec">
     <div class="sec-title">今日打卡</div>
@@ -41,12 +51,30 @@
   <button class="refresh" onclick="loadData()">刷新</button>
   <div class="status" id="status"></div>
 <script>
+  var DATA=null;
+  var currentDate=null;
+
   function setStatus(t){ var s=document.getElementById('status'); if(s) s.innerHTML=t; }
   function showErr(t){ var e=document.getElementById('err'); if(e){ e.style.display='block'; e.innerHTML=t; } }
-  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+  function clearErr(){ var e=document.getElementById('err'); if(e) e.style.display='none'; }
+
+  function pad(n){ return ('0'+n).slice(-2); }
+  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function shiftDate(str, delta){
+    var p=str.split('-'); var d=new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+    d.setDate(d.getDate()+delta);
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  }
   function storeKey(date, idx){ return 'sb_'+date+'_'+idx; }
+
+  function pickDefault(){
+    if(DATA && DATA.days){ var keys=Object.keys(DATA.days).sort(); return keys[keys.length-1] || todayStr(); }
+    return (DATA && DATA.date) ? DATA.date : todayStr();
+  }
+
   function renderList(elId, arr, date){
     var el=document.getElementById(elId); if(!el) return; el.innerHTML='';
+    if(!arr || arr.length===0){ el.innerHTML='<div class="empty">（暂无内容）</div>'; return; }
     for(var i=0;i<arr.length;i++){
       var key=storeKey(date,i);
       var checked=false;
@@ -68,6 +96,35 @@
       div.appendChild(box); div.appendChild(txt); el.appendChild(div);
     }
   }
+
+  function renderDay(){
+    if(!DATA || !currentDate) return;
+    if(DATA.title) document.getElementById('title').innerHTML=DATA.title;
+    var isToday = (currentDate===todayStr());
+    document.getElementById('date').innerHTML = currentDate + (isToday?' <small>（今天）</small>':'');
+
+    var entry=null;
+    if(DATA.days && DATA.days[currentDate]){
+      entry = DATA.days[currentDate];
+    } else if(!DATA.days){
+      // 兼容未迁移的旧结构：整份当作当天
+      entry = { checklist:DATA.checklist||[], homework:DATA.homework||[], diary:DATA.diary||'' };
+    }
+
+    if(!entry){
+      document.getElementById('checklist').innerHTML='<div class="empty">这一天还没有录入～</div>';
+      document.getElementById('homework').innerHTML='<div class="empty">（暂无内容）</div>';
+      document.getElementById('diary').innerHTML='<div class="empty">（暂无内容）</div>';
+      return;
+    }
+    renderList('checklist', entry.checklist||[], currentDate);
+    renderList('homework', entry.homework||[], currentDate);
+    document.getElementById('diary').innerHTML=entry.diary||'<div class="empty">（暂无内容）</div>';
+  }
+
+  function goDay(delta){ if(!currentDate) return; currentDate=shiftDate(currentDate,delta); renderDay(); }
+  function goToday(){ currentDate=todayStr(); renderDay(); }
+
   function loadData(){
     setStatus('正在加载…');
     var xhr=new XMLHttpRequest();
@@ -77,14 +134,10 @@
       if(xhr.readyState===4){
         if(xhr.status>=200 && xhr.status<300){
           try{
-            var d=JSON.parse(xhr.responseText);
-            showErr('');
-            if(d.title) document.getElementById('title').innerHTML=d.title;
-            var date=d.date||todayStr();
-            document.getElementById('date').innerHTML='日期：'+date;
-            renderList('checklist', d.checklist||[], date);
-            renderList('homework', d.homework||[], date);
-            document.getElementById('diary').innerHTML=d.diary||'';
+            DATA=JSON.parse(xhr.responseText);
+            clearErr();
+            if(!currentDate) currentDate=pickDefault();
+            renderDay();
             setStatus('已更新 '+new Date().toLocaleTimeString());
           }catch(e){ showErr('数据解析失败'); setStatus(''); }
         }else{
