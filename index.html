@@ -1,195 +1,101 @@
 <!DOCTYPE html>
-<!--
-  雪碧成长日记 · 墨水屏版（KPW2 适配）
-  - 专为 Kindle Paperwhite 2 (758x1024, 灰阶, 老 WebKit) 优化
-  - 纯静态、零外部依赖；内容直接写在下方 HTML 里，改文案只需编辑本文件后重新发布
-  - 打卡勾选使用 localStorage 本地保存（不依赖服务器），刷新/重开仍在
-  要改内容：编辑下面 <body> 里的文字与清单项即可。
--->
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=758, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>雪碧成长日记</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-text-size-adjust:100%; }
-  html, body {
-    background:#ffffff; color:#000000;
-    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    width:758px;
-  }
-  .header {
-    background:#000000; color:#ffffff;
-    padding:22px 26px;
-    border-bottom:4px solid #000000;
-  }
-  .header h1 { font-size:46px; font-weight:bold; letter-spacing:2px; }
-  .header .date { font-size:26px; margin-top:8px; opacity:0.9; }
-  .wrap { padding:24px 26px 60px; }
-  .card {
-    border:3px solid #000000;
-    margin-bottom:26px;
-    background:#ffffff;
-  }
-  .card .title {
-    background:#000000; color:#ffffff;
-    font-size:32px; font-weight:bold;
-    padding:12px 18px;
-  }
-  .card .body { padding:18px 20px; }
-  .row {
-    display:block;
-    font-size:30px;
-    padding:14px 6px;
-    border-bottom:2px solid #000000;
-    line-height:1.4;
-  }
-  .row:last-child { border-bottom:none; }
-  .cb {
-    width:34px; height:34px;
-    -webkit-appearance:checkbox;
-    vertical-align:middle;
-    margin-right:16px;
-  }
-  .homework .done { text-decoration:line-through; }
-  .diary .entry { padding:14px 6px; border-bottom:2px solid #000000; }
-  .diary .entry:last-child { border-bottom:none; }
-  .diary .d-date { font-size:24px; font-weight:bold; margin-bottom:6px; }
-  .diary .d-text { font-size:28px; line-height:1.5; }
-  .count {
-    font-size:28px; font-weight:bold;
-    padding:14px 18px; border-top:3px solid #000000;
-    background:#f0f0f0;
-  }
-  .footer {
-    font-size:22px; color:#444444;
-    padding:20px 26px 40px;
-    line-height:1.5;
-  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { background:#fff; color:#000; font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; -webkit-text-size-adjust:100%; }
+  body { padding:18px; max-width:800px; margin:0 auto; }
+  .topbar { background:#000; color:#fff; padding:14px 18px; font-size:30px; font-weight:bold; border-radius:6px; }
+  .date { font-size:18px; color:#555; margin:10px 2px 18px; }
+  .sec { margin-bottom:22px; }
+  .sec-title { font-size:24px; font-weight:bold; border-bottom:2px solid #999; padding-bottom:6px; margin-bottom:12px; }
+  .item { display:flex; align-items:flex-start; font-size:22px; line-height:1.4; padding:10px 4px; border-bottom:1px solid #e0e0e0; }
+  .box { width:26px; height:26px; border:2px solid #000; border-radius:4px; margin-right:14px; flex:0 0 auto; margin-top:2px; text-align:center; font-size:20px; line-height:24px; }
+  .done .box { background:#000; color:#fff; }
+  .done .txt { text-decoration:line-through; color:#999; }
+  .diary { font-size:22px; line-height:1.6; padding:10px 4px; }
+  .refresh { position:fixed; right:16px; bottom:16px; background:#000; color:#fff; border:none; font-size:20px; padding:14px 20px; border-radius:30px; }
+  .status { font-size:14px; color:#999; text-align:center; margin-top:10px; }
+  #err { color:#c00; font-size:16px; padding:10px; display:none; }
 </style>
 </head>
 <body>
-  <div class="header">
-    <h1>雪碧成长日记</h1>
-    <div class="date" id="date">今天</div>
+  <div class="topbar" id="title">雪碧成长日记</div>
+  <div class="date" id="date"></div>
+  <div id="err"></div>
+  <div class="sec">
+    <div class="sec-title">今日打卡</div>
+    <div id="checklist"></div>
   </div>
-
-  <div class="wrap">
-
-    <div class="card">
-      <div class="title">今日打卡</div>
-      <div class="body" id="checklist">
-        <label class="row"><input type="checkbox" class="cb" data-key="c1">起床刷牙洗脸</label>
-        <label class="row"><input type="checkbox" class="cb" data-key="c2">读绘本 20 分钟</label>
-        <label class="row"><input type="checkbox" class="cb" data-key="c3">完成今日作业</label>
-        <label class="row"><input type="checkbox" class="cb" data-key="c4">户外运动 30 分钟</label>
-        <label class="row"><input type="checkbox" class="cb" data-key="c5">自己整理书包</label>
-        <label class="row"><input type="checkbox" class="cb" data-key="c6">睡前读书</label>
-      </div>
-      <div class="count" id="count">今日打卡 0 / 6</div>
-    </div>
-
-    <div class="card homework">
-      <div class="title">今日作业</div>
-      <div class="body">
-        <label class="row"><input type="checkbox" class="cb" data-key="h1">语文：抄写生字 2 行</label>
-        <label class="row"><input type="checkbox" class="cb" data-key="h2">数学：练习册第 12 页</label>
-        <label class="row"><input type="checkbox" class="cb" data-key="h3">英语：跟读 Unit 3</label>
-        <label class="row"><input type="checkbox" class="cb" data-key="h4">口算：每日 50 题</label>
-      </div>
-      <div class="count" id="hwcount">作业完成 0 / 4</div>
-    </div>
-
-    <div class="card diary">
-      <div class="title">成长日记</div>
-      <div class="body">
-        <div class="entry">
-          <div class="d-date">2026-11-08</div>
-          <div class="d-text">今天雪碧自己读完了整本绘本，还绘声绘色地讲给妈妈听，特别棒！</div>
-        </div>
-        <div class="entry">
-          <div class="d-date">2026-11-07</div>
-          <div class="d-text">运动会跑拿到了小奖牌，回家路上一直举着舍不得放下。</div>
-        </div>
-        <div class="entry">
-          <div class="d-date">2026-11-06</div>
-          <div class="d-text">学会了系鞋带，虽然有点慢，但很认真地练习了好多次。</div>
-        </div>
-      </div>
-    </div>
-
+  <div class="sec">
+    <div class="sec-title">今日作业</div>
+    <div id="homework"></div>
   </div>
-
-  <div class="footer">
-    提示：勾选的打卡和作业会保存在这台 Kindle 上，刷新或重开页面仍在。<br>
-    想更新内容，请让爸爸/妈妈改好后重新发布。
+  <div class="sec">
+    <div class="sec-title">成长日记</div>
+    <div class="diary" id="diary"></div>
   </div>
-
+  <button class="refresh" onclick="loadData()">刷新</button>
+  <div class="status" id="status"></div>
 <script>
-// ---- 日期（即使脚本失效，上面已显示“今天”作为兜底） ----
-(function(){
-  try {
-    var days=["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
-    var d=new Date();
-    var txt=d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日 "+days[d.getDay()];
-    var el=document.getElementById("date");
-    if(el){ el.innerHTML=txt; }
-  } catch(e){}
-})();
-
-// ---- 打卡本地保存（localStorage 渐进增强） ----
-(function(){
-  function boxes(){ return document.getElementsByClassName("cb"); }
-  function save(){
-    try{
-      var b=boxes();
-      for(var i=0;i<b.length;i++){
-        var k=b[i].getAttribute("data-key");
-        localStorage.setItem(k, b[i].checked?"1":"0");
-      }
-    }catch(e){}
-  }
-  function load(){
-    try{
-      var b=boxes();
-      for(var i=0;i<b.length;i++){
-        var k=b[i].getAttribute("data-key");
-        if(localStorage.getItem(k)==="1"){ b[i].checked=true; }
-      }
-    }catch(e){}
-  }
-  function refresh(){
-    try{
-      var b=boxes();
-      var done=0, total=b.length;
-      for(var i=0;i<b.length;i++){ if(b[i].checked){ done++; } }
-      var c=document.getElementById("count");
-      if(c){ c.innerHTML="今日打卡 "+done+" / "+total; }
-      var h=document.getElementById("hwcount");
-      if(h){
-        // 作业项 data-key 以 h 开头
-        var hd=0, ht=0;
-        for(var j=0;j<b.length;j++){
-          if(b[j].getAttribute("data-key").indexOf("h")===0){
-            ht++; if(b[j].checked){ hd++; }
-          }
-        }
-        h.innerHTML="作业完成 "+hd+" / "+ht;
-      }
-    }catch(e){}
-  }
-  function init(){
-    load();
-    var b=boxes();
-    for(var i=0;i<b.length;i++){
-      b[i].onchange=function(){ save(); refresh(); };
+  function setStatus(t){ var s=document.getElementById('status'); if(s) s.innerHTML=t; }
+  function showErr(t){ var e=document.getElementById('err'); if(e){ e.style.display='block'; e.innerHTML=t; } }
+  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
+  function storeKey(date, idx){ return 'sb_'+date+'_'+idx; }
+  function renderList(elId, arr, date){
+    var el=document.getElementById(elId); if(!el) return; el.innerHTML='';
+    for(var i=0;i<arr.length;i++){
+      var key=storeKey(date,i);
+      var checked=false;
+      try{ checked = localStorage.getItem(key)==='1'; }catch(e){}
+      var div=document.createElement('div');
+      div.className='item'+(checked?' done':'');
+      var box=document.createElement('div'); box.className='box'; box.innerHTML=checked?'✓':'';
+      var txt=document.createElement('div'); txt.className='txt'; txt.innerHTML=arr[i];
+      (function(idx,div,box){
+        div.onclick=function(){
+          var k=storeKey(date,idx);
+          var now = (localStorage.getItem(k)==='1');
+          try{ localStorage.setItem(k, now?'0':'1'); }catch(e){}
+          var nd = !now;
+          div.className='item'+(nd?' done':'');
+          box.innerHTML=nd?'✓':'';
+        };
+      })(i,div,box);
+      div.appendChild(box); div.appendChild(txt); el.appendChild(div);
     }
-    refresh();
   }
-  if(document.addEventListener){ document.addEventListener("DOMContentLoaded", init); }
-  else if(window.attachEvent){ window.attachEvent("onload", init); }
-  else { init(); }
-})();
+  function loadData(){
+    setStatus('正在加载…');
+    var xhr=new XMLHttpRequest();
+    xhr.open('GET','data.json?_='+Date.now(),true);
+    xhr.setRequestHeader('Cache-Control','no-cache');
+    xhr.onreadystatechange=function(){
+      if(xhr.readyState===4){
+        if(xhr.status>=200 && xhr.status<300){
+          try{
+            var d=JSON.parse(xhr.responseText);
+            showErr('');
+            if(d.title) document.getElementById('title').innerHTML=d.title;
+            var date=d.date||todayStr();
+            document.getElementById('date').innerHTML='日期：'+date;
+            renderList('checklist', d.checklist||[], date);
+            renderList('homework', d.homework||[], date);
+            document.getElementById('diary').innerHTML=d.diary||'';
+            setStatus('已更新 '+new Date().toLocaleTimeString());
+          }catch(e){ showErr('数据解析失败'); setStatus(''); }
+        }else{
+          showErr('加载失败（'+xhr.status+'），请稍后点刷新'); setStatus('');
+        }
+      }
+    };
+    xhr.send();
+  }
+  loadData();
+  setInterval(loadData, 60000);
 </script>
 </body>
 </html>
