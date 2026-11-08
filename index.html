@@ -8,24 +8,10 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { background:#fff; color:#000; }
 body { font-family:sans-serif; -webkit-text-size-adjust:none; line-height:1.15; }
-#hd { background:#000; color:#fff; font-size:34px; font-weight:bold; padding:8px 14px; overflow:hidden; }
-#hd .t { display:inline-block; vertical-align:middle; }
-#hd .cat { float:right; vertical-align:middle; }
-#hd .cat svg { display:block; }
-#bar { font-size:26px; padding:5px 10px; border-bottom:2px solid #000; }
+#bar { font-size:26px; padding:8px 10px; border-bottom:2px solid #000; }
 #bar b { font-size:30px; }
 .btn { display:inline-block; border:2px solid #000; padding:1px 10px; margin-left:5px; font-size:24px; color:#000; text-decoration:none; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
-#wt th { font-size:22px; font-weight:normal; color:#333; background:#eee; padding:3px 0; }
-#wt td { text-align:center; padding:4px 2px; border-bottom:2px solid #000; }
-.wd { font-size:24px; font-weight:bold; }
-.wx { font-size:24px; }
-.wt3 { font-size:22px; color:#222; }
-#mascot { table-layout:auto; }
-#mascot td { vertical-align:middle; border-bottom:2px solid #000; padding:6px 10px; }
-#mascot .catcell { width:190px; text-align:center; }
-#mascot .bubble { font-size:30px; line-height:40px; font-weight:bold; }
-#mascot .greet { color:#555; font-size:24px; line-height:32px; }
 .col { vertical-align:top; padding:5px 12px 2px; }
 .col + .col { border-left:2px solid #000; }
 .sec { font-size:26px; font-weight:bold; border-bottom:1px solid #000; padding-bottom:2px; margin-bottom:3px; }
@@ -34,50 +20,21 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 #diaryBox { padding:5px 14px 12px; }
 #diaryBox p { font-size:26px; line-height:38px; }
 .empty { font-size:24px; color:#555; line-height:38px; }
+/* 天气（最后一行） */
+#wt th { font-size:22px; font-weight:normal; color:#333; background:#eee; padding:3px 0; }
+#wt td { text-align:center; padding:4px 2px; border-bottom:2px solid #000; }
+.wd { font-size:24px; font-weight:bold; }
+.wx { font-size:24px; }
+.wt3 { font-size:22px; color:#222; }
+/* 雪碧：右下角 */
+#corner { position:absolute; right:8px; bottom:8px; text-align:right; }
+#corner .bubble { font-size:24px; line-height:32px; font-weight:bold; color:#333; }
+#corner .greet { font-size:20px; line-height:26px; color:#555; }
 </style>
 </head>
 <body>
 
-<div id="hd">
-  <span class="t">瓜瓜成长日记</span>
-  <span class="cat">
-    <svg width="64" height="64" viewBox="0 0 48 48" aria-label="cat">
-      <g fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
-        <path d="M11 19 L16 9 L23 17"/>
-        <path d="M37 19 L32 9 L25 17"/>
-        <circle cx="24" cy="27" r="13"/>
-        <circle cx="19" cy="25" r="1.7" fill="#fff"/>
-        <circle cx="29" cy="25" r="1.7" fill="#fff"/>
-        <path d="M24 29 l-2.4 2 h4.8 z" fill="#fff"/>
-        <path d="M24 31 v3 M24 34 q-3 2 -6 1 M24 34 q3 2 6 1"/>
-        <path d="M11 27 h6 M11 31 h6 M37 27 h-6 M37 31 h-6"/>
-      </g>
-    </svg>
-  </span>
-</div>
-
 <div id="bar">&nbsp;</div>
-
-<table id="wt">
-  <tr><th id="wtCity" colspan="3">天气</th></tr>
-  <tr>
-    <td id="wt0"><span class="empty">…</span></td>
-    <td id="wt1"><span class="empty">…</span></td>
-    <td id="wt2"><span class="empty">…</span></td>
-  </tr>
-</table>
-
-<table id="mascot">
-  <tr>
-    <td class="catcell">
-      <img src="cat.png" width="190" height="190" alt="cat">
-    </td>
-    <td>
-      <div class="bubble" id="greet1">&nbsp;</div>
-      <div class="greet" id="greet2">&nbsp;</div>
-    </td>
-  </tr>
-</table>
 
 <table>
   <tr>
@@ -95,6 +52,21 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 <div id="diaryBox">
   <div class="sec">成长日记</div>
   <p id="diary">&nbsp;</p>
+</div>
+
+<table id="wt">
+  <tr><th id="wtCity" colspan="3">天气 · 最近三天</th></tr>
+  <tr>
+    <td id="wt0"><span class="empty">…</span></td>
+    <td id="wt1"><span class="empty">…</span></td>
+    <td id="wt2"><span class="empty">…</span></td>
+  </tr>
+</table>
+
+<div id="corner">
+  <div class="bubble" id="greet1">&nbsp;</div>
+  <div class="greet" id="greet2">&nbsp;</div>
+  <img src="cat.png" width="190" height="190" alt="cat">
 </div>
 
 <script>
@@ -138,7 +110,6 @@ function load(){
 function render(){
   var days=(DATA&&DATA.days)||{}, dd=days[cur]||{};
   var dt=new Date(cur.replace(/-/g,'/'));
-  document.getElementById('hd').getElementsByTagName('span')[0].innerHTML=esc((DATA&&DATA.title)||'成长日记');
   document.getElementById('bar').innerHTML=
     '<b>'+cur+' '+(isNaN(dt)?'':weekCN(dt))+'</b>'
     +'<a class="btn" href="javascript:void(0)" onclick="page(-1)">‹前</a>'
