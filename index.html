@@ -8,8 +8,8 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { background:#fff; color:#000; }
 body { font-family:sans-serif; -webkit-text-size-adjust:none; line-height:1.15; padding-bottom:390px; }
-#bar { font-size:26px; padding:8px 10px; border-bottom:2px solid #000; }
-#bar b { font-size:30px; }
+#bar { font-size:26px; padding:8px 10px; border-bottom:2px solid #000; display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
+#bar b { font-size:30px; margin-right:auto; }
 .btn { display:inline-block; border:2px solid #000; padding:1px 10px; margin-left:5px; font-size:24px; color:#000; text-decoration:none; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .col { vertical-align:top; padding:5px 12px 2px; }
@@ -83,6 +83,13 @@ var DATA=null, cur=null, latest=null;
 function pad(n){ return (n<10?'0':'')+n; }
 function fmtDate(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 function weekCN(d){ return '周'+'日一二三四五六'.charAt(d.getDay()); }
+/* 英文日期：Monday, November 9, 2026（不依赖 Intl，兼容老浏览器） */
+function fmtDateEN(d){
+  if(isNaN(d)) return '';
+  var wd=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
+  var mo=['January','February','March','April','May','June','July','August','September','October','November','December'][d.getMonth()];
+  return wd+', '+mo+' '+d.getDate()+', '+d.getFullYear();
+}
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function done(d,i){ try{ return localStorage.getItem('ck_'+d+'_'+i)=='1'; }catch(e){ return false; } }
 function tog(i){ try{ localStorage.setItem('ck_'+cur+'_'+i, done(cur,i)?'0':'1'); }catch(e){} }
@@ -120,11 +127,11 @@ function render(){
   var days=(DATA&&DATA.days)||{}, dd=days[cur]||{};
   var dt=new Date(cur.replace(/-/g,'/'));
   document.getElementById('bar').innerHTML=
-    '<b>'+cur+' '+(isNaN(dt)?'':weekCN(dt))+'</b>'
-    +'<a class="btn" href="javascript:void(0)" onclick="page(-1)">‹前</a>'
-    +'<a class="btn" href="javascript:void(0)" onclick="page(1)">后›</a>'
-    +'<a class="btn" href="javascript:void(0)" onclick="goLatest()">今天</a>'
-    +'<a class="btn" href="javascript:void(0)" onclick="load()">刷新</a>';
+    '<b>'+fmtDateEN(dt)+'</b>'
+    +'<a class="btn" href="javascript:void(0)" onclick="page(-1)" title="前一天" aria-label="前一天">◀</a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="page(1)" title="后一天" aria-label="后一天">▶</a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天">●</a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="load()" title="刷新" aria-label="刷新">↻</a>';
 
   var ck=dd.checklist||[], s='', i;
   if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
