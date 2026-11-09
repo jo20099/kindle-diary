@@ -256,9 +256,9 @@ def history_for(month, day):
             other.append(item)
     if not cn and not other:
         return ""
-    # 选取策略：涉华优先、同池内短的优先；贪心凑 2 条，总长控制在两行预算内，
-    # 避免屏保上文字被截断（约 32 字/行 × 2 行，扣除前缀与分隔符）
-    budget = 50
+    # 选取策略：涉华优先、同池内短的优先；贪心凑 3 条，总长控制在三行预算内，
+    # 给「历史上的今天」更大展示空间（约 27 字/行 × 3 行，扣除分隔符）
+    budget = 75
     cand = sorted(cn, key=lambda x: len(x[1])) + sorted(other, key=lambda x: len(x[1]))
     picked, used = [], 0
     for y, t in cand:
@@ -279,7 +279,7 @@ def history_for(month, day):
         except Exception:
             yl = ""
         parts.append((yl + " " + t).strip() if yl else t)
-    return "历史上的今天：" + "；".join(parts) + "。"
+    return "；".join(parts) + "。"
 
 
 def wrap_text(d, text, f, max_w):
@@ -338,24 +338,24 @@ def render(data, w, h, live):
     # ===== 三天预报 =====
     d.text((S(36), T(420)), "最近三天", font=font(T(36)), fill=BLACK)
     names = ["今天", "明天", "后天"]
-    row_y = [T(486), T(626), T(766)]
+    row_y = [T(470), T(600), T(730)]
     for i in range(3):
         y = row_y[i]
         dt = datetime.strptime(dl["time"][i], "%Y-%m-%d")
         label = "%s  %d/%d" % (names[i], dt.month, dt.day)
-        d.text((S(36), y + T(14)), label, font=font(T(40)), fill=BLACK)
-        d.text((S(38), y + T(70)), "周" + WEEK[dt.weekday()], font=font(T(26)), fill=GRAY)
+        d.text((S(36), y + T(12)), label, font=font(T(38)), fill=BLACK)
+        d.text((S(38), y + T(66)), "周" + WEEK[dt.weekday()], font=font(T(25)), fill=GRAY)
 
-        draw_icon(img, icon_kind(dl["weather_code"][i]), S(320), y + T(48), S(74), lw=max(3, S(4)))
+        draw_icon(img, icon_kind(dl["weather_code"][i]), S(320), y + T(46), S(70), lw=max(3, S(4)))
         d = ImageDraw.Draw(img)
-        d.text((S(400), y + T(30)), WMO.get(dl["weather_code"][i], "—"), font=font(T(34)), fill=BLACK)
+        d.text((S(400), y + T(28)), WMO.get(dl["weather_code"][i], "—"), font=font(T(32)), fill=BLACK)
         pop = dl.get("precipitation_probability_max", [None] * 3)[i]
-        d.text((S(400), y + T(78)), "降水 %s%%" % (pop if pop is not None else "—"),
-               font=font(T(24)), fill=GRAY)
+        d.text((S(400), y + T(74)), "降水 %s%%" % (pop if pop is not None else "—"),
+               font=font(T(23)), fill=GRAY)
 
         hi, lo = round(dl["temperature_2m_max"][i]), round(dl["temperature_2m_min"][i])
-        text_r(d, (w - S(36), y + T(8)), "%d° / %d°" % (hi, lo), font(T(52)))
-        d.line([(S(36), y + T(126)), (w - S(36), y + T(126))], fill=GRAY, width=max(1, S(2)))
+        text_r(d, (w - S(36), y + T(6)), "%d° / %d°" % (hi, lo), font(T(48)))
+        d.line([(S(36), y + T(116)), (w - S(36), y + T(116))], fill=GRAY, width=max(1, S(2)))
 
     # ===== 历史上的今天（屏保展示） =====
     try:
@@ -364,22 +364,24 @@ def render(data, w, h, live):
     except Exception:
         hist = ""
 
-    # ===== 底部信息 =====
-    d.line([(S(36), T(905)), (w - S(36), T(905))], fill=BLACK, width=max(2, S(3)))
-    y = T(912)
+    # ===== 历史上的今天（独立区块，更大空间） =====
+    d.line([(S(36), T(858)), (w - S(36), T(858))], fill=BLACK, width=max(2, S(3)))
+    y = T(868)
+    d.text((S(36), y), "历史上的今天", font=font(T(28)), fill=BLACK)
+    y += T(36)
     if hist:
-        hf = font(T(21))
-        for ln in wrap_text(d, hist, hf, w - 2 * S(36))[:2]:
+        hf = font(T(25))
+        for ln in wrap_text(d, hist, hf, w - 2 * S(36))[:3]:
             d.text((S(36), y), ln, font=hf, fill=BLACK)
-            y += T(26)
+            y += T(30)
         y += T(8)
     else:
-        y = T(924)
+        y += T(8)
     sr = dl["sunrise"][0][-5:]
     ss = dl["sunset"][0][-5:]
     upd = fetched[-5:] if len(fetched) >= 5 else fetched  # 只取 HH:MM
     d.text((S(36), y), "日出 %s   日落 %s   更新 %s%s" % (sr, ss, upd, "" if live else " (缓存)"),
-           font=font(T(22)), fill=BLACK)
+           font=font(T(21)), fill=BLACK)
     return img
 
 
