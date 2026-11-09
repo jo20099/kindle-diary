@@ -340,23 +340,33 @@ var WEEKEND=[
  '啦啦啦，周末不用早起，瓜瓜最幸福！',
  '周末到咯，雪碧陪你一起玩！'
 ];
+/* 周末底部激励：不督促学习，改为休息/玩耍话术 */
+var WEEKEND_PUSH=[
+ '今天不赶作业，痛痛快快玩！',
+ '周末多睡会儿，养足精神～',
+ '放下书本，去跑跑跳跳吧！',
+ '今天的主任务：玩得开心！',
+ '出去晒晒太阳，比做题舒服多啦！',
+ '周末放松一下，周一更有劲！',
+ '多喝水多运动，身体棒棒！',
+ '瓜瓜自由时间到，想玩啥玩啥！'
+];
 function rnd(a){ return a[Math.floor(Math.random()*a.length)]; }
 function setGreet(){
   var dt=new Date(cur.replace(/-/g,'/'));
   var dow=dt.getDay(); /* 0=周日 6=周六 */
-  /* 周末：随机提醒周末愉快，不塞脑筋急转弯 */
-  if(dow===0 || dow===6){
-    document.getElementById('greet1').innerHTML=rnd(WEEKEND);
-    document.getElementById('greet2').innerHTML=rnd(PUSH);
-    return;
-  }
-  /* 工作日：优先当天古诗词；空白日期交替塞脑筋急转弯/笑话（按年内第几天固定，翻看历史某天也固定） */
+  var isWeekend=(dow===0 || dow===6);
   var start=new Date(dt.getFullYear(),0,0);
   var doy=Math.floor((dt-start)/86400000);
   var item=poemByDate[cur];
+  /* 当天有诗优先（含周末）：节气/节日到了就显示诗 */
   if(item){
     document.getElementById('greet1').innerHTML=item.p+'<span class="src"> — '+item.s+'</span>';
+  }else if(isWeekend){
+    /* 周末无诗：随机周末话术，不塞脑筋急转弯 */
+    document.getElementById('greet1').innerHTML=rnd(WEEKEND);
   }else{
+    /* 工作日无诗：交替塞脑筋急转弯/笑话（按年内第几天固定，翻看历史某天也固定） */
     var f=FUN[doy % FUN.length];
     if(f.t==='r'){
       document.getElementById('greet1').innerHTML=f.q+'<span class="src"> 答案：'+f.a+'</span>';
@@ -364,8 +374,8 @@ function setGreet(){
       document.getElementById('greet1').innerHTML=f.s;
     }
   }
-  /* 底部激励语：保持随机 */
-  document.getElementById('greet2').innerHTML=rnd(PUSH);
+  /* 底部激励：周末不激励学习，改用休息/玩耍话术；工作日保持随机学习激励 */
+  document.getElementById('greet2').innerHTML = isWeekend ? rnd(WEEKEND_PUSH) : rnd(PUSH);
 }
 
 function load(){
