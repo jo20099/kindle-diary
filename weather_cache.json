@@ -1,10 +1,10 @@
 {
   "current": {
-    "time": "2026-11-09T21:15",
+    "time": "2026-11-09T21:30",
     "interval": 900,
-    "temperature_2m": 17.1,
+    "temperature_2m": 17.0,
     "relative_humidity_2m": 44,
-    "apparent_temperature": 12.7,
+    "apparent_temperature": 12.6,
     "weather_code": 0,
     "wind_speed_10m": 21.5
   },
@@ -45,5 +45,5 @@
       0
     ]
   },
-  "fetched": "2026-11-09 21:29"
+  "fetched": "2026-11-09 21:33"
 }

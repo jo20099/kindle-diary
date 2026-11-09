@@ -225,9 +225,9 @@ def load_history_text():
 
 
 def history_for(month, day):
-    """取某月某日的历史事件，拼成『历史上的今天：…』。
+    """取某月某日的历史事件，返回事件字符串列表（每条独立成行，含末尾句号）。
 
-    仅取 type=1 历史事件（剔除人物生卒），优先涉华事件，不足 2 条用外国补齐。
+    仅取 type=1 历史事件（剔除人物生卒），优先涉华事件，不足则外国补齐。
     整文件有非法 \\u 转义，故按日期正则抽取当日条目、逐条解析，坏条目跳过。"""
     txt = load_history_text()
     if not txt:
@@ -255,14 +255,14 @@ def history_for(month, day):
         else:
             other.append(item)
     if not cn and not other:
-        return ""
+        return []
     # 选取策略：涉华优先、同池内短的优先；贪心凑 3 条，总长控制在三行预算内，
     # 给「历史上的今天」更大展示空间（约 27 字/行 × 3 行，扣除分隔符）
     budget = 75
     cand = sorted(cn, key=lambda x: len(x[1])) + sorted(other, key=lambda x: len(x[1]))
     picked, used = [], 0
     for y, t in cand:
-        if len(picked) >= 2:
+        if len(picked) >= 3:
             break
         add = len(t) + (1 if picked else 0)
         if used + add <= budget:
@@ -279,7 +279,9 @@ def history_for(month, day):
         except Exception:
             yl = ""
         parts.append((yl + " " + t).strip() if yl else t)
-    return "；".join(parts) + "。"
+    if parts:
+        parts[-1] = parts[-1] + "。"   # 末尾句号
+    return parts   # 返回事件列表，每条独立成行
 
 
 def wrap_text(d, text, f, max_w):
@@ -335,8 +337,7 @@ def render(data, w, h, live):
     d.text((S(36), T(352)), detail, font=font(T(28)), fill=BLACK)
     d.line([(S(36), T(404)), (w - S(36), T(404))], fill=BLACK, width=max(2, S(3)))
 
-    # ===== 三天预报 =====
-    d.text((S(36), T(420)), "最近三天", font=font(T(36)), fill=BLACK)
+    # ===== 三天预报（今天/明天/后天 自带标签，无需标题） =====
     names = ["今天", "明天", "后天"]
     row_y = [T(470), T(600), T(730)]
     for i in range(3):
@@ -371,7 +372,16 @@ def render(data, w, h, live):
     y += T(36)
     if hist:
         hf = font(T(25))
-        for ln in wrap_text(d, hist, hf, w - 2 * S(36))[:3]:
+        lines = []
+        for ev in hist:
+            # 每条历史事件独立换行；超 3 行则停止，保证不越界
+            wl = wrap_text(d, ev, hf, w - 2 * S(36))
+            if lines and len(lines) + len(wl) > 3:
+                break
+            lines.extend(wl)
+            if len(lines) >= 3:
+                break
+        for ln in lines[:3]:
             d.text((S(36), y), ln, font=hf, fill=BLACK)
             y += T(30)
         y += T(8)
