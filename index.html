@@ -19,7 +19,10 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .col { vertical-align:top; padding:5px 12px 2px; }
 .sec { font-size:25px; font-weight:600; letter-spacing:0.5px; border-bottom:1px solid #000; padding-bottom:3px; margin-bottom:5px; }
 /* 作业/打卡条目：长文本自动换行（支持单条最多 ~150 字） */
-.item { font-size:28px; line-height:40px; word-break:break-all; }
+.item { font-size:28px; line-height:40px; word-break:break-all; cursor:pointer; }
+/* 已完成：整行置灰 + 文本删除线 */
+.item.done { opacity:.4; }
+.item.done .txt { text-decoration:line-through; }
 .item input { width:24px; height:24px; margin-right:7px; vertical-align:middle; }
 .empty { font-size:24px; color:#555; line-height:38px; }
 
@@ -97,9 +100,9 @@ function fmtDateEN(d){
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function done(d,i){ try{ return localStorage.getItem('ck_'+d+'_'+i)=='1'; }catch(e){ return false; } }
-function tog(i){ try{ localStorage.setItem('ck_'+cur+'_'+i, done(cur,i)?'0':'1'); }catch(e){} }
+function tog(i,el){ try{ localStorage.setItem('ck_'+cur+'_'+i, done(cur,i)?'0':'1'); }catch(e){} if(el&&el.parentNode) el.parentNode.classList.toggle('done'); }
 function done2(d,i){ try{ return localStorage.getItem('hw_'+d+'_'+i)=='1'; }catch(e){ return false; } }
-function tog2(i){ try{ localStorage.setItem('hw_'+cur+'_'+i, done2(cur,i)?'0':'1'); }catch(e){} }
+function tog2(j,el){ try{ localStorage.setItem('hw_'+cur+'_'+j, done2(cur,j)?'0':'1'); }catch(e){} if(el&&el.parentNode) el.parentNode.classList.toggle('done'); }
 
 /* 雪碧黑体招呼语：每日一个笑话（按当前显示日期固定，翻到哪天显示哪天笑话） */
 var POEMS=[
@@ -409,14 +412,14 @@ function render(){
   var ck=dd.checklist||[], s='', i;
   if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
   for(i=0;i<ck.length;i++){
-    s+='<div class="item"><input type="checkbox"'+(done(cur,i)?' checked':'')+' onclick="tog('+i+')"> '+esc(ck[i])+'</div>';
+    s+='<div class="item'+(done(cur,i)?' done':'')+'"><input type="checkbox"'+(done(cur,i)?' checked':'')+' onclick="tog('+i+',this)"> <span class="txt">'+esc(ck[i])+'</span></div>';
   }
   document.getElementById('ck').innerHTML=s;
 
   var hw=dd.homework||[], t='', j;
   if(!hw.length) t='<div class="empty">没有作业，痛快玩！</div>';
   for(j=0;j<hw.length;j++){
-    t+='<div class="item"><input type="checkbox"'+(done2(cur,j)?' checked':'')+' onclick="tog2('+j+')"> '+esc(hw[j])+'</div>';
+    t+='<div class="item'+(done2(cur,j)?' done':'')+'"><input type="checkbox"'+(done2(cur,j)?' checked':'')+' onclick="tog2('+j+',this)"> <span class="txt">'+esc(hw[j])+'</span></div>';
   }
   document.getElementById('hw').innerHTML=t;
 
