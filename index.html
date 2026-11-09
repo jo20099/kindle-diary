@@ -100,12 +100,36 @@ function tog(i){ try{ localStorage.setItem('ck_'+cur+'_'+i, done(cur,i)?'0':'1')
 function done2(d,i){ try{ return localStorage.getItem('hw_'+d+'_'+i)=='1'; }catch(e){ return false; } }
 function tog2(i){ try{ localStorage.setItem('hw_'+cur+'_'+i, done2(cur,i)?'0':'1'); }catch(e){} }
 
-/* 随机打招呼 + 激励（每次刷新换一句） */
-var GREET=['早安，瓜瓜！雪碧来啦～','嗨，瓜瓜～我是雪碧！','瓜瓜你好呀，雪碧报到！','瓜瓜今天也要元气满满哦！','喵～瓜瓜，雪碧来陪你啦！'];
+/* 雪碧黑体招呼语：每日一个笑话（按当前显示日期固定，翻到哪天显示哪天笑话） */
+var JOKES=[
+  '为什么企鹅的肚子是白的？因为它手太短，洗澡只能洗到前面！',
+  '小蜗牛为什么走得慢？因为它背着房子，还舍不得搬家。',
+  '什么水果最忙？芒果，因为它叫"忙"果呀。',
+  '为什么数学书总是不开心？因为它有太多"问题"了。',
+  '小鱼为什么不会迷路？因为它有一条"鱼"路（余地）。',
+  '乌龟和兔子再赛跑，谁赢了？乌龟，因为兔子又睡着啦。',
+  '为什么雪人最怕冷？因为它一热就"化"掉了。',
+  '小鸭子走路为什么一摇一摆？因为它在练习跳舞呢。',
+  '书为什么总是安安静静？因为它只会"默"读。',
+  '太阳和月亮谁更勤快？太阳，因为它天不亮就上班。',
+  '为什么棒棒糖最受欢迎？因为它满嘴"甜"言蜜语。',
+  '小猫咪为什么爱打盹？因为它把"猫"睡成了"喵"。',
+  '为什么雨后会出彩虹？因为云朵洗完澡，晒出了七彩衣服。',
+  '铅笔为什么总戴着帽子？因为它怕"头脑"着凉。',
+  '为什么时钟走路不声不响？因为它穿了"静"音鞋。',
+  '月亮为什么总跟着你？因为它想听你讲今天的趣事。'
+];
+/* 底部激励语（每次刷新随机换一句，保持不变） */
 var PUSH =['完成打卡，瓜瓜最棒啦！','今天的作业也难不倒瓜瓜，冲鸭！','读完一本书，瓜瓜就离聪明更近一步！','坚持一下，胜利就在眼前，瓜瓜加油！','认真的样子最可爱啦，瓜瓜！','每完成一项，就给自己点个赞，瓜瓜！'];
 function rnd(a){ return a[Math.floor(Math.random()*a.length)]; }
 function setGreet(){
-  document.getElementById('greet1').innerHTML=rnd(GREET);
+  /* 黑体招呼语：按当前显示的日期取一个笑话（当天不变，翻到不同日期换不同笑话） */
+  var d=new Date(cur.replace(/-/g,'/'));
+  var start=new Date(d.getFullYear(),0,0);
+  var idx=Math.floor((d-start)/86400000)%JOKES.length;
+  if(idx<0) idx+=JOKES.length;
+  document.getElementById('greet1').innerHTML=JOKES[idx];
+  /* 底部激励语：保持随机 */
   document.getElementById('greet2').innerHTML=rnd(PUSH);
 }
 
