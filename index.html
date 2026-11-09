@@ -496,7 +496,10 @@ function render(){
   }
   document.getElementById('hw').innerHTML=t;
 
-  document.getElementById('diary').innerHTML=dd.diary?esc(dd.diary):'<span class="empty">这一天还没有日记～</span>';
+  var diaryTxt=dd.diary||'';
+  /* 历史上的今天已移出本页（改用 Kindle 屏保展示），页面不渲染，避免占用底部空间 */
+  if(diaryTxt.indexOf('历史上的今天')>=0) diaryTxt='';
+  document.getElementById('diary').innerHTML=diaryTxt?esc(diaryTxt):'<span class="empty">这一天还没有日记～</span>';
 }
 function page(n){ var dt=new Date(cur.replace(/-/g,'/')); dt.setDate(dt.getDate()+n); cur=fmtDate(dt); render(); }
 function goLatest(){ cur=latest; render(); }
