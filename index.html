@@ -25,6 +25,14 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .item.done .txt { text-decoration:line-through; }
 .item input { width:24px; height:24px; margin-right:7px; vertical-align:middle; }
 .empty { font-size:24px; color:#555; line-height:38px; }
+/* 作业要求：默认隐藏，点击入口展开（墨水屏友好，纯边框无阴影） */
+#rulesToggle { font-size:23px; padding:7px 12px; border-bottom:1px dashed #000; cursor:pointer; color:#111; background:#fafafa; }
+#rulesToggle #rulesArr { float:right; font-size:20px; color:#444; }
+#rulesBox { display:none; padding:6px 12px 12px; border-bottom:2px solid #000; }
+.ruleCard { margin:8px 0; border:1.5px solid #000; }
+.ruleTitle { font-size:24px; font-weight:700; background:#111; color:#fff; padding:5px 10px; }
+.ruleList { padding:5px 9px; }
+.ruleItem { font-size:22px; line-height:33px; word-break:break-all; }
 
 /* 底部固定块（钉屏幕最底）：成长日记 → 雪碧独立一行 → 天气 */
 #bottom { position:fixed; left:0; bottom:0; width:100%; background:#fff; border-top:2px solid #000; }
@@ -48,6 +56,9 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 <body>
 
 <div id="bar">&nbsp;</div>
+
+<div id="rulesToggle" onclick="toggleRules()">各科作业要求 <span id="rulesArr">〔展开〕</span></div>
+<div id="rulesBox"></div>
 
 <table id="main">
   <tr>
@@ -103,6 +114,56 @@ function done(d,i){ try{ return localStorage.getItem('ck_'+d+'_'+i)=='1'; }catch
 function tog(i,el){ try{ localStorage.setItem('ck_'+cur+'_'+i, done(cur,i)?'0':'1'); }catch(e){} if(el&&el.parentNode) el.parentNode.classList.toggle('done'); }
 function done2(d,i){ try{ return localStorage.getItem('hw_'+d+'_'+i)=='1'; }catch(e){ return false; } }
 function tog2(j,el){ try{ localStorage.setItem('hw_'+cur+'_'+j, done2(cur,j)?'0':'1'); }catch(e){} if(el&&el.parentNode) el.parentNode.classList.toggle('done'); }
+
+/* 各科作业要求：默认隐藏，点击入口展开 */
+var RULES=[
+ {t:'数学', items:[
+   '应用题：不能漏单位',
+   '要有答句（写“答：”加冒号）',
+   '使用综合算式',
+   '逐步用黑笔写作业',
+   '黑笔写作业、蓝笔订正、红笔自批',
+   '作图、连线题用铅笔作答与订正',
+   '解决问题：作答在左，订正在右',
+   '书写：黑色水笔，工整；错用横线划掉，禁用修正带；尽量不涂改，先打草稿',
+   '学会检查：防抄错数、计算错误等低级失误',
+   '学习习惯：听讲+复习；每天带数学书、《阳评》、堂练本、草稿本；备黑笔/2B铅笔/红笔/蓝笔+透明直尺'
+ ]},
+ {t:'语文预习', items:[
+   '指读课文三遍',
+   '标自然段',
+   '圈二会字并口头组词',
+   '圈四会字，书空并注音'
+ ]},
+ {t:'英语', items:[
+   '句子：用标点、首字母大写、单词间留空格',
+   '单词抄写（英语本）：一个单词一行写4个英文，下方写2个中文翻译',
+   '家听格式：第一行写日期和星期',
+   '每行听4个单词，每个“1英+1中”',
+   '每个单词对照书本批改并订正',
+   '听完后整体对照书本批改并订正'
+ ]}
+];
+function renderRules(){
+  var h='';
+  for(var k=0;k<RULES.length;k++){
+    h+='<div class="ruleCard"><div class="ruleTitle">'+esc(RULES[k].t)+'</div><div class="ruleList">';
+    for(var m=0;m<RULES[k].items.length;m++){
+      h+='<div class="ruleItem">· '+esc(RULES[k].items[m])+'</div>';
+    }
+    h+='</div></div>';
+  }
+  return h;
+}
+function toggleRules(){
+  var b=document.getElementById('rulesBox'), a=document.getElementById('rulesArr');
+  if(b.style.display==='block'){
+    b.style.display='none'; if(a) a.textContent='〔展开〕';
+  }else{
+    if(!b.innerHTML) b.innerHTML=renderRules();
+    b.style.display='block'; if(a) a.textContent='〔收起〕';
+  }
+}
 
 /* 雪碧黑体招呼语：每日一个笑话（按当前显示日期固定，翻到哪天显示哪天笑话） */
 var POEMS=[
