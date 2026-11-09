@@ -3,3 +3,4 @@
 *.token
 # 本地缓存
 _hot_cache.json
+_history_cache.json

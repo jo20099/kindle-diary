@@ -12,6 +12,8 @@ import argparse
 import json
 import math
 import os
+import re
+import time
 import urllib.request
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont, ImageChops, ImageFilter
@@ -20,6 +22,34 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(DIR, "weather_cache.json")
 LAT, LON = 23.1248, 113.3616
 CITY = "广州市天河区"
+
+# ---- 历史上的今天：来自 GitHub 公开数据集 PrintNow/TodayInHistory ----
+# 该文件是约 4MB 的扁平 JSON，且个别条目含非法 \u 转义，严格 json.load 会崩。
+# 故改用「按日期正则抽取当日条目 + 逐条解析」的稳健方式，坏条目直接跳过。
+HISTORY_URL = "https://raw.githubusercontent.com/PrintNow/TodayInHistory/master/history_in_today.json"
+HISTORY_CACHE = os.path.join(DIR, "_history_cache.json")
+HISTORY_MAX_AGE = 30 * 86400  # 30 天刷新一次（内容基本不变）
+HIST_PAT = re.compile(
+    r'\{"year":"(-?\d+)","month":"(\d+)","day":"(\d+)","type":(\d+),"data":"((?:[^"\\]|\\.)*)"\}')
+CN_KW = [
+    "中国", "中华", "华夏", "神州", "九州", "中土",
+    "北京", "上海", "天津", "重庆", "广州", "深圳", "南京", "西安", "杭州", "成都", "武汉",
+    "苏州", "无锡", "宁波", "福州", "厦门", "昆明", "贵阳", "拉萨", "乌鲁木齐", "银川", "西宁",
+    "兰州", "南昌", "长沙", "郑州", "合肥", "太原", "石家庄", "南宁", "海口", "呼和浩特", "台北",
+    "广东", "广西", "四川", "湖北", "湖南", "山东", "山西", "河南", "河北", "江苏", "浙江", "福建",
+    "安徽", "江西", "陕西", "云南", "贵州", "甘肃", "青海", "辽宁", "吉林", "黑龙江", "海南",
+    "西藏", "新疆", "内蒙古", "宁夏", "澳门",
+    "清朝", "清代", "明朝", "明代", "唐朝", "唐代", "宋朝", "宋代", "秦朝", "秦代", "汉朝", "汉代",
+    "元朝", "元代", "隋朝", "隋代", "晋朝", "晋代", "周朝", "周代", "三国时期", "三国时代", "蜀汉", "曹魏", "孙吴",
+    "辽朝", "辽国", "金朝", "金国", "西夏", "南北朝", "五代十国",
+    "秦始皇", "汉武帝", "唐太宗", "武则天", "成吉思汗", "康熙", "乾隆", "慈禧", "诸葛亮", "关羽",
+    "岳飞", "文天祥", "郑和", "郑成功", "孔子", "老子", "孟子", "李白", "杜甫", "苏轼", "白居易",
+    "王羲之", "司马迁", "祖冲之", "张衡", "李时珍", "孙武", "庄子", "墨子",
+    "毛泽东", "蒋介石", "孙中山", "周恩来", "邓小平", "国民党", "共产党", "红军", "解放军",
+    "八路军", "新四军", "故宫", "长城", "黄河", "长江", "珠江", "京杭", "丝绸之路", "兵马俑",
+    "莫高窟", "黄山", "泰山", "抗战", "甲午", "鸦片战争", "义和团", "太平天国", "辛亥", "长征",
+    "北伐", "西安事变", "九一八", "七七", "南京大屠杀", "抗日战争", "科举", "翰林", "状元", "进士",
+]
 
 FONT_CANDIDATES = [
     "/System/Library/Fonts/PingFang.ttc",                       # macOS
@@ -31,8 +61,8 @@ FONT_CANDIDATES = [
 ]
 BLACK, WHITE, GRAY = 0, 255, 150
 
-WMO = {0: "晴", 1: "晴间多云", 2: "多云", 3: "阴", 45: "雾", 48: "雾凇",
-       51: "毛毛雨", 53: "毛毛雨", 55: "毛毛雨", 56: "冻毛毛雨", 57: "冻毛毛雨",
+WMO = {0: "晴", 1: "晴", 2: "多云", 3: "阴", 45: "雾", 48: "雾凇",
+       51: "毛毛雨", 53: "毛毛雨", 55: "毛毛雨", 56: "冻雨", 57: "冻雨",
        61: "小雨", 63: "中雨", 65: "大雨", 66: "冻雨", 67: "冻雨",
        71: "小雪", 73: "中雪", 75: "大雪", 77: "米雪",
        80: "阵雨", 81: "阵雨", 82: "强阵雨", 85: "阵雪", 86: "阵雪",
@@ -169,6 +199,108 @@ def text_c(d, cx, y, s, f, fill=BLACK):
     d.text((cx - (b[2] - b[0]) / 2, y), s, font=f, fill=fill)
 
 
+def load_history_text():
+    """返回历史事件 JSON 原始文本；优先本地缓存，失败联网拉取，再失败回退缓存。"""
+    if os.path.exists(HISTORY_CACHE) and (time.time() - os.path.getmtime(HISTORY_CACHE)) < HISTORY_MAX_AGE:
+        try:
+            return open(HISTORY_CACHE, encoding="utf-8").read()
+        except Exception:
+            pass
+    try:
+        req = urllib.request.Request(HISTORY_URL, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            txt = r.read().decode("utf-8")
+        try:
+            open(HISTORY_CACHE, "w", encoding="utf-8").write(txt)
+        except Exception:
+            pass
+        return txt
+    except Exception:
+        if os.path.exists(HISTORY_CACHE):
+            try:
+                return open(HISTORY_CACHE, encoding="utf-8").read()
+            except Exception:
+                pass
+        return ""
+
+
+def history_for(month, day):
+    """取某月某日的历史事件，拼成『历史上的今天：…』。
+
+    仅取 type=1 历史事件（剔除人物生卒），优先涉华事件，不足 2 条用外国补齐。
+    整文件有非法 \\u 转义，故按日期正则抽取当日条目、逐条解析，坏条目跳过。"""
+    txt = load_history_text()
+    if not txt:
+        return ""
+    m, d = str(month), str(day)
+    cn, other = [], []
+    for mm in HIST_PAT.finditer(txt):
+        y, mo, dd, ty, data = mm.groups()
+        if mo != m or dd != d or ty != "1":
+            continue
+        try:
+            t = json.loads('{"data":"%s"}' % data)["data"]
+        except Exception:
+            # 个别条目含非法转义，手工解码可用的 \uXXXX，仍有残留则跳过该条
+            t = re.sub(r"\\u([0-9a-fA-F]{4})", lambda x: chr(int(x.group(1), 16)), data)
+            t = t.replace('\\"', '"').replace("\\/", "/").replace("\\\\", "\\")
+            if "\\u" in t:
+                continue
+        t = t.strip().rstrip("。；;！!？?")
+        if not t:
+            continue
+        item = (y, t)
+        if any(k in t for k in CN_KW):
+            cn.append(item)
+        else:
+            other.append(item)
+    if not cn and not other:
+        return ""
+    # 选取策略：涉华优先、同池内短的优先；贪心凑 2 条，总长控制在两行预算内，
+    # 避免屏保上文字被截断（约 32 字/行 × 2 行，扣除前缀与分隔符）
+    budget = 50
+    cand = sorted(cn, key=lambda x: len(x[1])) + sorted(other, key=lambda x: len(x[1]))
+    picked, used = [], 0
+    for y, t in cand:
+        if len(picked) >= 2:
+            break
+        add = len(t) + (1 if picked else 0)
+        if used + add <= budget:
+            picked.append((y, t))
+            used += add
+    if not picked and cand:
+        y, t = cand[0]
+        picked = [(y, t[:budget] + "…")]
+    parts = []
+    for y, t in picked:
+        try:
+            yi = int(y)
+            yl = ("公元前" + str(-yi) + "年") if yi < 0 else (str(yi) + "年")
+        except Exception:
+            yl = ""
+        parts.append((yl + " " + t).strip() if yl else t)
+    return "历史上的今天：" + "；".join(parts) + "。"
+
+
+def wrap_text(d, text, f, max_w):
+    """中文按字符折行（无空格），返回行列表。"""
+    lines, cur = [], ""
+    for ch in text:
+        if ch == "\n":
+            lines.append(cur)
+            cur = ""
+            continue
+        if d.textlength(cur + ch, font=f) <= max_w:
+            cur += ch
+        else:
+            if cur:
+                lines.append(cur)
+            cur = ch
+    if cur:
+        lines.append(cur)
+    return lines
+
+
 def render(data, w, h, live):
     img = Image.new("L", (w, h), WHITE)
     d = ImageDraw.Draw(img)
@@ -225,14 +357,29 @@ def render(data, w, h, live):
         text_r(d, (w - S(36), y + T(8)), "%d° / %d°" % (hi, lo), font(T(52)))
         d.line([(S(36), y + T(126)), (w - S(36), y + T(126))], fill=GRAY, width=max(1, S(2)))
 
+    # ===== 历史上的今天（屏保展示） =====
+    try:
+        today_dt = datetime.strptime(dl["time"][0], "%Y-%m-%d")
+        hist = history_for(today_dt.month, today_dt.day)
+    except Exception:
+        hist = ""
+
     # ===== 底部信息 =====
-    d.line([(S(36), T(910)), (w - S(36), T(910))], fill=BLACK, width=max(2, S(3)))
+    d.line([(S(36), T(905)), (w - S(36), T(905))], fill=BLACK, width=max(2, S(3)))
+    y = T(912)
+    if hist:
+        hf = font(T(21))
+        for ln in wrap_text(d, hist, hf, w - 2 * S(36))[:2]:
+            d.text((S(36), y), ln, font=hf, fill=BLACK)
+            y += T(26)
+        y += T(8)
+    else:
+        y = T(924)
     sr = dl["sunrise"][0][-5:]
     ss = dl["sunset"][0][-5:]
-    d.text((S(36), T(924)), "日出 %s   日落 %s" % (sr, ss), font=font(T(28)), fill=BLACK)
-    d.text((S(36), T(962)), "更新 %s · 数据 Open-Meteo%s" % (fetched, "" if live else " (缓存)"),
-           font=font(T(22)), fill=GRAY)
-    d.text((S(36), T(992)), "熄屏为静态快照，连电脑可刷新", font=font(T(20)), fill=GRAY)
+    upd = fetched[-5:] if len(fetched) >= 5 else fetched  # 只取 HH:MM
+    d.text((S(36), y), "日出 %s   日落 %s   更新 %s%s" % (sr, ss, upd, "" if live else " (缓存)"),
+           font=font(T(22)), fill=BLACK)
     return img
 
 
