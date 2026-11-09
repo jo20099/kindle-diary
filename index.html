@@ -492,14 +492,15 @@ var WMO={0:'晴',1:'晴',2:'多云',3:'阴',45:'雾',48:'雾',51:'毛毛雨',53:
 function weather(){
   if(!DATA||!DATA.weather) return;
   var w=DATA.weather;
-  document.getElementById('wtCity').innerHTML=esc(w.city||'')+' · 最近三天';
+  document.getElementById('wtCity').innerHTML=esc(w.city||'')+' · 天气预报';
   var url='https://api.open-meteo.com/v1/forecast?latitude='+w.lat+'&longitude='+w.lon+'&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3';
   var x=new XMLHttpRequest();
   x.open('GET',url,true);
   x.onreadystatechange=function(){
     if(x.readyState==4&&x.status==200){
       var j; try{ j=JSON.parse(x.responseText).daily; }catch(e){ return; }
-      var names=['今天','明天','后天'];
+      var names=[];
+      for(var i=0;i<3;i++){ names.push(((j.time&&j.time[i])||'').slice(5).replace('-','.')); }
       for(var i=0;i<3;i++){
         var wx=WMO[j.weather_code[i]]||'—';
         var hi=Math.round(j.temperature_2m_max[i]), lo=Math.round(j.temperature_2m_min[i]);
