@@ -9,12 +9,15 @@
 html,body { background:#fff; color:#000; }
 /* 全局字体栈：英文用经典无衬线，中文回退到苹方/雅黑， Kindle 等老浏览器回落到 Arial/系统 */
 body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; -webkit-text-size-adjust:none; line-height:1.3; }
-#bar { font-size:24px; padding:9px 12px; border-bottom:2px solid #000; display:flex; flex-wrap:nowrap; align-items:center; gap:7px; }
+/* 顶栏：不用 flex（Kindle 老 WebKit 不支持，日期和按钮会掉行），改 nowrap 单行 + 浮动右对齐 */
+#bar { font-size:24px; padding:9px 12px; border-bottom:2px solid #000; white-space:nowrap; overflow:hidden; }
 /* 第一行日期：细字重 + 字母微距，更秀气（Helvetica Neue Light 风格） */
-#bar b { font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; white-space:nowrap; margin-right:auto; }
-/* 四个按钮统一为等高等宽 flex 盒子：无论文字还是 SVG 都垂直水平居中、高度一致 */
-.btn { display:inline-flex; align-items:center; justify-content:center; width:42px; height:38px; padding:0; border:2px solid #000; font-size:27px; line-height:1; color:#000; text-decoration:none; }
-.btn svg { display:block; }
+#bar b { font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; white-space:nowrap; }
+/* 四个按钮：inline-block + line-height 垂直居中（老浏览器兼容），容器浮动靠右 */
+.btn { display:inline-block; width:42px; height:36px; line-height:36px; text-align:center; padding:0; border:2px solid #000; font-size:27px; color:#000; text-decoration:none; vertical-align:middle; }
+.btn+.btn { margin-left:7px; }
+.btn svg { display:block; margin:5px auto; }
+#barBtns { float:right; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
 /* 主内容滚动区：高度由 JS 按视口-顶栏-底栏算成固定像素，避免被 fixed 底栏遮住长作业 */
 #scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -477,10 +480,12 @@ function render(){
   var dt=new Date(cur.replace(/-/g,'/'));
   document.getElementById('bar').innerHTML=
     '<b>'+fmtDateEN(dt)+'</b>'
+    +'<span id="barBtns">'
     +'<a class="btn" href="javascript:void(0)" onclick="page(-1)" title="前一天" aria-label="前一天">‹</a>'
     +'<a class="btn" href="javascript:void(0)" onclick="page(1)" title="后一天" aria-label="后一天">›</a>'
-    +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></a>'
-    +'<a class="btn" href="javascript:void(0)" onclick="load()" title="刷新" aria-label="刷新">↻</a>';
+    +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="load()" title="刷新" aria-label="刷新">↻</a>'
+    +'</span>';
 
   var ck=dd.checklist||[], s='', i;
   if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
