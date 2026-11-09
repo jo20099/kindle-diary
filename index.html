@@ -8,7 +8,7 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { background:#fff; color:#000; }
 /* 全局字体栈：英文用经典无衬线，中文回退到苹方/雅黑， Kindle 等老浏览器回落到 Arial/系统 */
-body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; -webkit-text-size-adjust:none; line-height:1.3; padding-bottom:390px; }
+body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; -webkit-text-size-adjust:none; line-height:1.3; }
 #bar { font-size:24px; padding:9px 12px; border-bottom:2px solid #000; display:flex; flex-wrap:nowrap; align-items:center; gap:7px; }
 /* 第一行日期：细字重 + 字母微距，更秀气（Helvetica Neue Light 风格） */
 #bar b { font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; white-space:nowrap; margin-right:auto; }
@@ -16,6 +16,8 @@ body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'Ping
 .btn { display:inline-flex; align-items:center; justify-content:center; width:42px; height:38px; padding:0; border:2px solid #000; font-size:27px; line-height:1; color:#000; text-decoration:none; }
 .btn svg { display:block; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
+/* 主内容滚动区：高度由 JS 按视口-顶栏-底栏算成固定像素，避免被 fixed 底栏遮住长作业 */
+#scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .col { vertical-align:top; padding:5px 12px 2px; }
 .sec { font-size:25px; font-weight:600; letter-spacing:0.5px; border-bottom:1px solid #000; padding-bottom:3px; margin-bottom:5px; }
 /* 作业/打卡条目：长文本自动换行（支持单条最多 ~150 字） */
@@ -57,6 +59,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 
 <div id="bar">&nbsp;</div>
 
+<div id="scroll">
 <table id="main">
   <tr>
     <td class="col" style="width:55%">
@@ -69,6 +72,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
     </td>
   </tr>
 </table>
+</div>
 
 <div id="bottom">
   <div id="rulesToggle" onclick="toggleRules()">各科作业要求 <span id="rulesArr">〔展开〕</span></div>
@@ -457,6 +461,15 @@ function load(){
     }
   };
   x.send(null);
+  fitScroll();
+}
+
+function fitScroll(){
+  var b=document.getElementById('bottom'), bar=document.getElementById('bar'), s=document.getElementById('scroll');
+  if(!b||!s) return;
+  var vh=document.documentElement.clientHeight||window.innerHeight||0;
+  var h=vh-(b.offsetHeight||0)-(bar?bar.offsetHeight:0);
+  if(h>0) s.style.height=h+'px';
 }
 
 function render(){
@@ -512,6 +525,8 @@ function weather(){
 }
 load();
 setInterval(load,60000);
+window.addEventListener('resize', fitScroll);
+window.addEventListener('orientationchange', fitScroll);
 </script>
 </body>
 </html>
