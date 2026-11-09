@@ -1,0 +1,5 @@
+# 敏感凭据，切勿提交
+.github_token
+*.token
+# 本地缓存
+_hot_cache.json
