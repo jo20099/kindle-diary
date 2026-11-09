@@ -8,7 +8,7 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 html,body { background:#fff; color:#000; }
 /* 全局字体栈：英文用经典无衬线，中文回退到苹方/雅黑， Kindle 等老浏览器回落到 Arial/系统 */
-body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; -webkit-text-size-adjust:none; line-height:1.3; }
+body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; -webkit-text-size-adjust:none; line-height:1.3; padding-bottom:390px; }
 #bar { font-size:24px; padding:9px 12px; border-bottom:2px solid #000; display:flex; flex-wrap:nowrap; align-items:center; gap:7px; }
 /* 第一行日期：细字重 + 字母微距，更秀气（Helvetica Neue Light 风格） */
 #bar b { font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; white-space:nowrap; margin-right:auto; }
@@ -28,14 +28,14 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 /* 作业要求：默认隐藏，点击入口展开（墨水屏友好，纯边框无阴影） */
 #rulesToggle { font-size:23px; padding:7px 12px; border-bottom:1px dashed #000; cursor:pointer; color:#111; background:#fafafa; }
 #rulesToggle #rulesArr { float:right; font-size:20px; color:#444; }
-#rulesBox { display:none; padding:6px 12px 12px; border-bottom:2px solid #000; }
+#rulesBox { display:none; padding:6px 12px 12px; border-bottom:2px solid #000; max-height:62vh; overflow-y:auto; }
 .ruleCard { margin:8px 0; border:1.5px solid #000; }
 .ruleTitle { font-size:24px; font-weight:700; background:#111; color:#fff; padding:5px 10px; }
 .ruleList { padding:5px 9px; }
 .ruleItem { font-size:22px; line-height:33px; word-break:break-all; }
 
 /* 底部固定块（钉屏幕最底）：成长日记 → 雪碧独立一行 → 天气 */
-#bottom { background:#fff; border-top:2px solid #000; margin-top:8px; }
+#bottom { position:fixed; left:0; bottom:0; width:100%; background:#fff; border-top:2px solid #000; }
 #diaryRow { padding:6px 14px; border-bottom:2px solid #000; }
 #diaryRow p { font-size:26px; line-height:38px; word-break:break-all; }
 /* 雪碧单独一行：左=猫咪图像，右=招呼文字，同一行内左右排布 */
@@ -70,10 +70,9 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
   </tr>
 </table>
 
-<div id="rulesToggle" onclick="toggleRules()">各科作业要求 <span id="rulesArr">〔展开〕</span></div>
-<div id="rulesBox"></div>
-
 <div id="bottom">
+  <div id="rulesToggle" onclick="toggleRules()">各科作业要求 <span id="rulesArr">〔展开〕</span></div>
+  <div id="rulesBox"></div>
   <div id="diaryRow">
     <div class="sec">成长日记</div>
     <p id="diary">&nbsp;</p>
