@@ -9,25 +9,17 @@
 html,body { background:#fff; color:#000; }
 /* 全局字体栈：英文用经典无衬线，中文回退到苹方/雅黑， Kindle 等老浏览器回落到 Arial/系统 */
 body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; -webkit-text-size-adjust:none; line-height:1.3; }
-/* 顶栏：不用 flex（Kindle 老 WebKit 不支持，日期和按钮会掉行），改 nowrap 单行 + 浮动右对齐 */
-#bar { font-size:24px; padding:9px 12px; border-bottom:2px solid #000; white-space:nowrap; overflow:hidden; }
+#bar { font-size:24px; padding:9px 12px; border-bottom:2px solid #000; display:flex; flex-wrap:nowrap; align-items:center; gap:7px; }
 /* 第一行日期：细字重 + 字母微距，更秀气（Helvetica Neue Light 风格） */
-#bar b { font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; white-space:nowrap; }
-/* 四个按钮：inline-block + line-height 垂直居中（老浏览器兼容），容器浮动靠右 */
-.btn { display:inline-block; width:42px; height:36px; line-height:36px; text-align:center; padding:0; border:2px solid #000; font-size:27px; color:#000; text-decoration:none; vertical-align:middle; }
-.btn+.btn { margin-left:7px; }
-.btn svg { display:block; margin:5px auto; }
-#barBtns { float:right; }
+#bar b { font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; white-space:nowrap; margin-right:auto; }
+/* 四个按钮统一为等高等宽 flex 盒子：无论文字还是 SVG 都垂直水平居中、高度一致 */
+.btn { display:inline-flex; align-items:center; justify-content:center; width:42px; height:38px; padding:0; border:2px solid #000; font-size:27px; line-height:1; color:#000; text-decoration:none; }
+.btn svg { display:block; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
 /* 主内容滚动区：高度由 JS 按视口-顶栏-底栏算成固定像素，避免被 fixed 底栏遮住长作业 */
 #scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .col { vertical-align:top; padding:5px 12px 2px; }
 .sec { font-size:25px; font-weight:600; letter-spacing:0.5px; border-bottom:1px solid #000; padding-bottom:3px; margin-bottom:5px; }
-/* 作业/打卡改为上下堆叠（不再是两列并排）；打卡内部每行 2 项 */
-#hwSec, #ckSec { padding:5px 12px 2px; }
-#ckSec { margin-top:8px; }
-.ck2 { width:100%; border-collapse:collapse; }
-.ck2 td { width:50%; vertical-align:top; padding:3px 10px 3px 0; word-break:break-all; }
 /* 作业/打卡条目：长文本自动换行（支持单条最多 ~150 字） */
 .item { font-size:28px; line-height:40px; word-break:break-all; cursor:pointer; }
 /* 已完成：整行置灰 + 文本删除线 */
@@ -36,7 +28,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .item input { width:24px; height:24px; margin-right:7px; vertical-align:middle; }
 .empty { font-size:24px; color:#555; line-height:38px; }
 /* 作业要求：默认隐藏，点击入口展开（墨水屏友好，纯边框无阴影） */
-#rulesToggle { font-size:23px; padding:7px 12px; border-bottom:2px solid #000; cursor:pointer; color:#111; background:#fafafa; }
+#rulesToggle { font-size:23px; padding:7px 12px; border-bottom:1px dashed #000; cursor:pointer; color:#111; background:#fafafa; }
 #rulesToggle #rulesArr { float:right; font-size:20px; color:#444; }
 #rulesBox { display:none; padding:6px 12px 12px; border-bottom:2px solid #000; max-height:380px; overflow-y:auto; }
 .ruleCard { margin:8px 0; border:1.5px solid #000; }
@@ -56,11 +48,26 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 #mascotRow .bubble { font-size:26px; line-height:35px; font-weight:600; color:#000; word-break:break-all; }
 #mascotRow .bubble .src { font-size:19px; font-weight:400; color:#555; }
 #mascotRow .greet { font-size:22px; line-height:30px; color:#333; margin-top:6px; word-break:break-all; }
-#wt th { font-size:19px; font-weight:normal; color:#333; background:#eee; padding:1px 0; }
-#wt td { text-align:center; padding:1px 1px; line-height:1.08; }
-.wd { font-size:20px; font-weight:bold; line-height:1.08; }
-.wx { font-size:20px; line-height:1.08; }
-.wt3 { font-size:18px; color:#222; line-height:1.08; }
+#wt th { font-size:22px; font-weight:normal; color:#333; background:#eee; padding:3px 0; }
+#wt td { text-align:center; padding:4px 2px; }
+.wd { font-size:24px; font-weight:bold; }
+.wx { font-size:24px; }
+.wt3 { font-size:22px; color:#222; }
+/* 屏保模式：全屏覆盖，墨水屏大字号（用 table 排版，避开老内核的 flex 兼容问题） */
+#saver { position:fixed; left:0; top:0; width:100%; height:100%; background:#fff; z-index:9999; display:none; overflow-y:auto; padding:22px 20px 50px; }
+#saver.on { display:block; }
+#saverExit { position:fixed; top:12px; right:14px; font-size:22px; color:#333; background:#fff; border:2px solid #999; border-radius:8px; padding:3px 12px; cursor:pointer; z-index:10000; }
+.saverDate { font-size:46px; font-weight:300; letter-spacing:1px; margin:2px 0 4px; color:#111; }
+.saverDate .wk { font-size:30px; color:#444; margin-left:12px; }
+.saverCity { font-size:26px; color:#333; margin-bottom:10px; }
+.saverSec { font-size:28px; font-weight:700; border-bottom:2px solid #000; padding-bottom:4px; margin:18px 0 10px; }
+.saverWt { width:100%; border-collapse:collapse; table-layout:fixed; }
+.saverWt td { text-align:center; border:1.5px solid #000; padding:12px 2px; vertical-align:top; }
+.saverWt .wd { font-size:30px; font-weight:bold; }
+.saverWt .wx { font-size:28px; margin:6px 0; }
+.saverWt .wt3 { font-size:26px; }
+.saverHist { font-size:28px; line-height:46px; word-break:break-all; }
+.barLink { font-size:22px; color:#111; text-decoration:none; border:2px solid #000; padding:4px 10px; line-height:1; margin-left:6px; }
 </style>
 </head>
 <body>
@@ -68,22 +75,26 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 <div id="bar">&nbsp;</div>
 
 <div id="scroll">
-  <div id="hwSec">
-    <div class="sec">今日作业</div>
-    <div id="hw"></div>
-  </div>
-  <div id="ckSec">
-    <div class="sec">今日打卡</div>
-    <div id="ck"></div>
-  </div>
+<table id="main">
+  <tr>
+    <td class="col" style="width:55%">
+      <div class="sec">今日作业</div>
+      <div id="hw"></div>
+    </td>
+    <td class="col" style="width:45%">
+      <div class="sec">今日打卡</div>
+      <div id="ck"></div>
+    </td>
+  </tr>
+</table>
 </div>
 
 <div id="bottom">
   <div id="rulesToggle" onclick="toggleRules()">各科作业要求 <span id="rulesArr">〔展开〕</span></div>
   <div id="rulesBox"></div>
   <div id="diaryRow">
-    <div class="sec">……(^-^)雪碧对你说</div>
-    <p id="remind">&nbsp;</p>
+    <div class="sec">成长日记</div>
+    <p id="diary">&nbsp;</p>
   </div>
   <table id="mascotRow">
     <tr>
@@ -95,12 +106,27 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
     </tr>
   </table>
   <table id="wt">
+    <tr><th id="wtCity" colspan="3">天气预报</th></tr>
     <tr>
       <td id="wt0"><span class="empty">…</span></td>
       <td id="wt1"><span class="empty">…</span></td>
       <td id="wt2"><span class="empty">…</span></td>
     </tr>
   </table>
+</div>
+
+<div id="saver">
+  <div id="saverExit" onclick="exitSaver()">✕ 退出</div>
+  <div class="saverDate" id="saverDate">&nbsp;</div>
+  <div class="saverCity" id="saverCity"></div>
+  <div class="saverSec">天气</div>
+  <table class="saverWt"><tr>
+    <td id="swt0"><span class="empty">…</span></td>
+    <td id="swt1"><span class="empty">…</span></td>
+    <td id="swt2"><span class="empty">…</span></td>
+  </tr></table>
+  <div class="saverSec">📜 历史上的今天</div>
+  <div class="saverHist" id="saverHist">&nbsp;</div>
 </div>
 
 <script>
@@ -445,8 +471,7 @@ function setGreet(){
     }
   }
   /* 底部激励：周末不激励学习，改用休息/玩耍话术；工作日保持随机学习激励 */
-  greet2Base = isWeekend ? rnd(WEEKEND_PUSH) : rnd(PUSH);
-  paintGreet2();
+  document.getElementById('greet2').innerHTML = isWeekend ? rnd(WEEKEND_PUSH) : rnd(PUSH);
 }
 
 function load(){
@@ -481,24 +506,16 @@ function render(){
   var dt=new Date(cur.replace(/-/g,'/'));
   document.getElementById('bar').innerHTML=
     '<b>'+fmtDateEN(dt)+'</b>'
-    +'<span id="barBtns">'
     +'<a class="btn" href="javascript:void(0)" onclick="page(-1)" title="前一天" aria-label="前一天">‹</a>'
     +'<a class="btn" href="javascript:void(0)" onclick="page(1)" title="后一天" aria-label="后一天">›</a>'
-    +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></a>'
     +'<a class="btn" href="javascript:void(0)" onclick="load()" title="刷新" aria-label="刷新">↻</a>'
-    +'</span>';
+    +'<a class="barLink" href="javascript:void(0)" onclick="enterSaver()" title="屏保模式">屏保</a>';
 
   var ck=dd.checklist||[], s='', i;
-  if(!ck.length){
-    s='<div class="empty">这一天还没有录入～</div>';
-  } else {
-    s='<table class="ck2"><tbody>';
-    for(i=0;i<ck.length;i++){
-      var cell='<div class="item'+(done(cur,i)?' done':'')+'"><input type="checkbox"'+(done(cur,i)?' checked':'')+' onclick="tog('+i+',this)"> <span class="txt">'+esc(ck[i])+'</span></div>';
-      if(i%2===0){ if(i>0) s+='</tr>'; s+='<tr>'; }
-      s+='<td>'+cell+'</td>';
-    }
-    s+='</tr></tbody></table>';
+  if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
+  for(i=0;i<ck.length;i++){
+    s+='<div class="item'+(done(cur,i)?' done':'')+'"><input type="checkbox"'+(done(cur,i)?' checked':'')+' onclick="tog('+i+',this)"> <span class="txt">'+esc(ck[i])+'</span></div>';
   }
   document.getElementById('ck').innerHTML=s;
 
@@ -509,44 +526,19 @@ function render(){
   }
   document.getElementById('hw').innerHTML=t;
 
-  /* 今日提醒（原成长日记位置）：校服提醒 + 雨具提醒，按 viewed 日的“明天”计算 */
-  paintReminders();
+  var diaryTxt=dd.diary||'';
+  /* 历史上的今天已移出本页（改用 Kindle 屏保展示），页面不渲染，避免占用底部空间 */
+  if(diaryTxt.indexOf('历史上的今天')>=0) diaryTxt='';
+  document.getElementById('diary').innerHTML=diaryTxt?esc(diaryTxt):'<span class="empty">这一天还没有日记～</span>';
 }
 function page(n){ var dt=new Date(cur.replace(/-/g,'/')); dt.setDate(dt.getDate()+n); cur=fmtDate(dt); render(); }
 function goLatest(){ cur=latest; render(); }
 
 var WMO={0:'晴',1:'晴',2:'多云',3:'阴',45:'雾',48:'雾',51:'毛毛雨',53:'毛毛雨',55:'毛毛雨',56:'冻毛毛雨',57:'冻毛毛雨',61:'小雨',63:'中雨',65:'大雨',66:'冻雨',67:'冻雨',71:'小雪',73:'中雪',75:'大雪',77:'米雪',80:'阵雨',81:'阵雨',82:'强阵雨',85:'阵雪',86:'阵雪',95:'雷阵雨',96:'雷阵雨',99:'雷冰雹'};
-/* 明天是否有雨（用于雪碧提醒带雨具）；greet2Base 缓存激励语，避免天气回调重算导致随机话术跳变 */
-var tomorrowRain=false, greet2Base='';
-function isRain(code){
-  if(code===undefined||code===null) return false;
-  return (code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95&&code<=99);
-}
-/* 猫咪第二行：仅输出激励语（雨具提醒已并入“今日提醒”区块） */
-function paintGreet2(){
-  document.getElementById('greet2').innerHTML = greet2Base||'';
-}
-/* 今日提醒：校服（明天周一/周五）+ 雨具（明天有雨且看最新一天）；无提醒给中性占位 */
-/* 无提醒时，雪碧随机夸夸瓜瓜 */
-var PRAISE=['瓜瓜今天也超棒的！','瓜瓜笑起来真好看～','雪碧觉得瓜瓜是世界上最聪明的小孩！','瓜瓜今天一定很努力，雪碧为你骄傲！','瓜瓜最可爱啦，抱抱！','雪碧好喜欢和瓜瓜在一起呀！'];
-function paintReminders(){
-  var remind=[];
-  var nd=new Date(cur.replace(/-/g,'/'));
-  var ndow=(nd.getDay()+1)%7; /* 明天是周几：0=周日…6=周六 */
-  if(ndow===1) remind.push('明天是周一，记得穿校服');
-  else if(ndow===5) remind.push('明天是周五，记得穿校服');
-  if(tomorrowRain && cur===latest) remind.push('明天有雨，记得带雨具');
-  var box=document.getElementById('diaryRow');
-  var el=document.getElementById('remind');
-  if(!el||!box) return;
-  /* 没有特别提醒时，整块隐藏，避免和下方（雪碧激励语）重复 */
-  if(!remind.length){ box.style.display='none'; return; }
-  box.style.display='';
-  el.innerHTML = remind.join('<br>');
-}
 function weather(){
   if(!DATA||!DATA.weather) return;
   var w=DATA.weather;
+  document.getElementById('wtCity').innerHTML=esc(w.city||'')+' · 天气预报';
   var url='https://api.open-meteo.com/v1/forecast?latitude='+w.lat+'&longitude='+w.lon+'&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3';
   var x=new XMLHttpRequest();
   x.open('GET',url,true);
@@ -560,13 +552,47 @@ function weather(){
         var hi=Math.round(j.temperature_2m_max[i]), lo=Math.round(j.temperature_2m_min[i]);
         document.getElementById('wt'+i).innerHTML='<div class="wd">'+names[i]+'</div><div class="wx">'+wx+'</div><div class="wt3">'+hi+'° / '+lo+'°</div>';
       }
-      /* 取“明天”(index=1)天气码，判断是否需要提醒带雨具 */
-      tomorrowRain = (j.weather_code && j.weather_code.length>1) ? isRain(j.weather_code[1]) : false;
-      paintReminders();
     }
   };
   x.send(null);
 }
+function fmtDateCN(d){ return d.getFullYear()+'年'+pad(d.getMonth()+1)+'月'+pad(d.getDate())+'日'; }
+function enterSaver(){
+  var dt=new Date(cur.replace(/-/g,'/'));
+  document.getElementById('saverDate').innerHTML=fmtDateCN(dt)+'<span class="wk">'+weekCN(dt)+'</span>';
+  if(DATA&&DATA.weather) document.getElementById('saverCity').innerHTML=esc((DATA.weather.city||'')+' · 天气预报');
+  saverHistory();
+  saverWeather();
+  document.getElementById('saver').classList.add('on');
+}
+function exitSaver(){ document.getElementById('saver').classList.remove('on'); }
+function saverHistory(){
+  var days=(DATA&&DATA.days)||{}, dd=days[cur]||{};
+  var txt=dd.diary||'';
+  var idx=txt.indexOf('历史上的今天'), body='';
+  if(idx>=0){ var c=txt.indexOf('：', idx); if(c>=0) body=txt.substring(c+1).trim(); }
+  document.getElementById('saverHist').innerHTML=body?esc(body):'<span class="empty">今天暂无历史回顾～</span>';
+}
+function saverWeather(){
+  if(!DATA||!DATA.weather) return;
+  var w=DATA.weather;
+  var url='https://api.open-meteo.com/v1/forecast?latitude='+w.lat+'&longitude='+w.lon+'&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3';
+  var x=new XMLHttpRequest();
+  x.open('GET',url,true);
+  x.onreadystatechange=function(){
+    if(x.readyState==4&&x.status===200){
+      var j; try{ j=JSON.parse(x.responseText).daily; }catch(e){ return; }
+      for(var i=0;i<3;i++){
+        var label=i===0?'今天':(((j.time&&j.time[i])||'').slice(5).replace('-','.'));
+        var wx=WMO[j.weather_code[i]]||'—';
+        var hi=Math.round(j.temperature_2m_max[i]), lo=Math.round(j.temperature_2m_min[i]);
+        document.getElementById('swt'+i).innerHTML='<div class="wd">'+label+'</div><div class="wx">'+wx+'</div><div class="wt3">'+hi+'° / '+lo+'°</div>';
+      }
+    }
+  };
+  x.send(null);
+}
+
 load();
 setInterval(load,60000);
 window.addEventListener('resize', fitScroll);
