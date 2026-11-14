@@ -333,10 +333,10 @@ def render(data, w, h, live):
     d.text((S(36) + (tb[2] - tb[0]), T(152)), "°", font=font(T(84)), fill=BLACK)
     cur_wx = WMO.get(c["weather_code"], "—")
     draw_icon(img, icon_kind(c["weather_code"]), S(600), T(204), S(140), lw=max(4, S(5)))
-    text_c(d, S(600), T(298), cur_wx, font(T(38)))
+    text_c(d, S(600), T(332), cur_wx, font(T(38)))
     detail = "体感 %s°   湿度 %s%%   风 %s km/h" % (
         round(c["apparent_temperature"]), c["relative_humidity_2m"], round(c["wind_speed_10m"]))
-    d.text((S(36), T(358)), detail, font=font(T(28)), fill=BLACK)
+    d.text((S(36), T(332)), detail, font=font(T(28)), fill=BLACK)
     d.line([(S(36), T(408)), (w - S(36), T(408))], fill=BLACK, width=max(2, S(3)))
 
     # ===== 三天预报（今天/明天/后天 自带标签，无需标题） =====
