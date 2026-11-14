@@ -339,7 +339,7 @@ def render(data, w, h, live):
 
     # ===== 三天预报（今天/明天/后天 自带标签，无需标题） =====
     names = ["今天", "明天", "后天"]
-    row_y = [T(470), T(600), T(730)]
+    row_y = [T(460), T(580), T(700)]
     for i in range(3):
         y = row_y[i]
         dt = datetime.strptime(dl["time"][i], "%Y-%m-%d")
@@ -356,7 +356,8 @@ def render(data, w, h, live):
 
         hi, lo = round(dl["temperature_2m_max"][i]), round(dl["temperature_2m_min"][i])
         text_r(d, (w - S(36), y + T(6)), "%d° / %d°" % (hi, lo), font(T(48)))
-        d.line([(S(36), y + T(116)), (w - S(36), y + T(116))], fill=GRAY, width=max(1, S(2)))
+        if i < 2:   # 后天行下方不画灰线，由历史块的黑粗分隔线接替
+            d.line([(S(36), y + T(116)), (w - S(36), y + T(116))], fill=GRAY, width=max(1, S(2)))
 
     # ===== 历史上的今天（屏保展示） =====
     try:
@@ -366,12 +367,12 @@ def render(data, w, h, live):
         hist = ""
 
     # ===== 历史上的今天（独立区块，更大空间） =====
-    d.line([(S(36), T(852)), (w - S(36), T(852))], fill=BLACK, width=max(2, S(3)))
-    y = T(862)
-    d.text((S(36), y), "历史上的今天", font=font(T(28)), fill=BLACK)
-    y += T(33)
+    d.line([(S(36), T(824)), (w - S(36), T(824))], fill=BLACK, width=max(2, S(3)))
+    y = T(834)
+    d.text((S(36), y), "历史上的今天", font=font(T(32)), fill=BLACK)
+    y += T(40)
     if hist:
-        hf = font(T(25))
+        hf = font(T(32))
         lines = []
         for ev in hist:
             # 每条历史事件独立换行；超 3 行则停止，保证不越界
@@ -383,11 +384,11 @@ def render(data, w, h, live):
                 break
         for ln in lines[:3]:
             d.text((S(36), y), ln, font=hf, fill=BLACK)
-            y += T(28)
-        y += T(8)
+            y += T(40)
+        y += T(10)
     else:
-        y += T(8)
-    y = min(y, T(996))   # 更新时间行保险上限，防止贴到 1024 底边被裁
+        y += T(10)
+    y = min(y, T(1000))   # 更新时间行保险上限，防止贴到 1024 底边被裁
     sr = dl["sunrise"][0][-5:]
     ss = dl["sunset"][0][-5:]
     upd = fetched[-5:] if len(fetched) >= 5 else fetched  # 只取 HH:MM
