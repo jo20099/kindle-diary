@@ -322,7 +322,9 @@ def render(data, w, h, live):
         wd = "周" + WEEK[datetime.strptime(stamp, "%Y-%m-%d").weekday()]
     except Exception:
         wd = ""
-    d.text((S(38), T(72)), "天气预报  %s %s" % (stamp, wd), font=font(T(26)), fill=WHITE)
+    upd = fetched[-5:] if len(fetched) >= 5 else fetched
+    d.text((S(38), T(72)), "%s %s   更新 %s%s" % (stamp, wd, upd, "" if live else " (缓存)"),
+           font=font(T(26)), fill=WHITE)
 
     # ===== 当前实况 =====
     temp = round(c["temperature_2m"])
@@ -391,8 +393,7 @@ def render(data, w, h, live):
     y = min(y, T(1000))   # 更新时间行保险上限，防止贴到 1024 底边被裁
     sr = dl["sunrise"][0][-5:]
     ss = dl["sunset"][0][-5:]
-    upd = fetched[-5:] if len(fetched) >= 5 else fetched  # 只取 HH:MM
-    d.text((S(36), y), "日出 %s   日落 %s   更新 %s%s" % (sr, ss, upd, "" if live else " (缓存)"),
+    d.text((S(36), y), "日出 %s   日落 %s" % (sr, ss),
            font=font(T(21)), fill=BLACK)
     return img
 
