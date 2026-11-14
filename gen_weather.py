@@ -326,9 +326,9 @@ def render(data, w, h, live):
 
     # ===== 当前实况 =====
     temp = round(c["temperature_2m"])
-    d.text((S(30), T(134)), str(temp), font=font(T(196)), fill=BLACK)
+    d.text((S(30), T(122)), str(temp), font=font(T(196)), fill=BLACK)
     tb = d.textbbox((0, 0), str(temp), font=font(T(196)))
-    d.text((S(36) + (tb[2] - tb[0]), T(164)), "°", font=font(T(84)), fill=BLACK)
+    d.text((S(36) + (tb[2] - tb[0]), T(152)), "°", font=font(T(84)), fill=BLACK)
     cur_wx = WMO.get(c["weather_code"], "—")
     draw_icon(img, icon_kind(c["weather_code"]), S(600), T(204), S(140), lw=max(4, S(5)))
     text_c(d, S(600), T(298), cur_wx, font(T(38)))
