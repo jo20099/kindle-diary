@@ -326,16 +326,16 @@ def render(data, w, h, live):
 
     # ===== 当前实况 =====
     temp = round(c["temperature_2m"])
-    d.text((S(30), T(140)), str(temp), font=font(T(196)), fill=BLACK)
+    d.text((S(30), T(134)), str(temp), font=font(T(196)), fill=BLACK)
     tb = d.textbbox((0, 0), str(temp), font=font(T(196)))
-    d.text((S(36) + (tb[2] - tb[0]), T(170)), "°", font=font(T(84)), fill=BLACK)
+    d.text((S(36) + (tb[2] - tb[0]), T(164)), "°", font=font(T(84)), fill=BLACK)
     cur_wx = WMO.get(c["weather_code"], "—")
-    draw_icon(img, icon_kind(c["weather_code"]), S(600), T(210), S(140), lw=max(4, S(5)))
-    text_c(d, S(600), T(304), cur_wx, font(T(38)))
+    draw_icon(img, icon_kind(c["weather_code"]), S(600), T(204), S(140), lw=max(4, S(5)))
+    text_c(d, S(600), T(298), cur_wx, font(T(38)))
     detail = "体感 %s°   湿度 %s%%   风 %s km/h" % (
         round(c["apparent_temperature"]), c["relative_humidity_2m"], round(c["wind_speed_10m"]))
-    d.text((S(36), T(352)), detail, font=font(T(28)), fill=BLACK)
-    d.line([(S(36), T(404)), (w - S(36), T(404))], fill=BLACK, width=max(2, S(3)))
+    d.text((S(36), T(358)), detail, font=font(T(28)), fill=BLACK)
+    d.line([(S(36), T(408)), (w - S(36), T(408))], fill=BLACK, width=max(2, S(3)))
 
     # ===== 三天预报（今天/明天/后天 自带标签，无需标题） =====
     names = ["今天", "明天", "后天"]
@@ -366,10 +366,10 @@ def render(data, w, h, live):
         hist = ""
 
     # ===== 历史上的今天（独立区块，更大空间） =====
-    d.line([(S(36), T(858)), (w - S(36), T(858))], fill=BLACK, width=max(2, S(3)))
-    y = T(868)
+    d.line([(S(36), T(852)), (w - S(36), T(852))], fill=BLACK, width=max(2, S(3)))
+    y = T(862)
     d.text((S(36), y), "历史上的今天", font=font(T(28)), fill=BLACK)
-    y += T(36)
+    y += T(33)
     if hist:
         hf = font(T(25))
         lines = []
@@ -383,10 +383,11 @@ def render(data, w, h, live):
                 break
         for ln in lines[:3]:
             d.text((S(36), y), ln, font=hf, fill=BLACK)
-            y += T(30)
+            y += T(28)
         y += T(8)
     else:
         y += T(8)
+    y = min(y, T(996))   # 更新时间行保险上限，防止贴到 1024 底边被裁
     sr = dl["sunrise"][0][-5:]
     ss = dl["sunset"][0][-5:]
     upd = fetched[-5:] if len(fetched) >= 5 else fetched  # 只取 HH:MM
