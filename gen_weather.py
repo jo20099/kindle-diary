@@ -323,21 +323,21 @@ def render(data, w, h, live):
     except Exception:
         wd = ""
     upd = fetched[-5:] if len(fetched) >= 5 else fetched
-    d.text((S(38), T(72)), "%s %s   更新 %s%s" % (stamp, wd, upd, "" if live else " (缓存)"),
+    d.text((S(38), T(72)), "%s %s" % (stamp, wd),
            font=font(T(26)), fill=WHITE)
 
     # ===== 当前实况 =====
     temp = round(c["temperature_2m"])
-    d.text((S(30), T(122)), str(temp), font=font(T(196)), fill=BLACK)
+    d.text((S(30), T(100)), str(temp), font=font(T(196)), fill=BLACK)
     tb = d.textbbox((0, 0), str(temp), font=font(T(196)))
-    d.text((S(36) + (tb[2] - tb[0]), T(152)), "°", font=font(T(84)), fill=BLACK)
+    d.text((S(36) + (tb[2] - tb[0]), T(130)), "°", font=font(T(84)), fill=BLACK)
     cur_wx = WMO.get(c["weather_code"], "—")
     draw_icon(img, icon_kind(c["weather_code"]), S(600), T(204), S(140), lw=max(4, S(5)))
-    text_c(d, S(600), T(332), cur_wx, font(T(38)))
+    text_c(d, S(600), T(352), cur_wx, font(T(38)))
     detail = "体感 %s°   湿度 %s%%   风 %s km/h" % (
         round(c["apparent_temperature"]), c["relative_humidity_2m"], round(c["wind_speed_10m"]))
-    d.text((S(36), T(332)), detail, font=font(T(28)), fill=BLACK)
-    d.line([(S(36), T(408)), (w - S(36), T(408))], fill=BLACK, width=max(2, S(3)))
+    d.text((S(36), T(352)), detail, font=font(T(28)), fill=BLACK)
+    d.line([(S(36), T(416)), (w - S(36), T(416))], fill=BLACK, width=max(2, S(3)))
 
     # ===== 三天预报（今天/明天/后天 自带标签，无需标题） =====
     names = ["今天", "明天", "后天"]
@@ -390,10 +390,10 @@ def render(data, w, h, live):
         y += T(10)
     else:
         y += T(10)
-    y = min(y, T(1000))   # 更新时间行保险上限，防止贴到 1024 底边被裁
+    y = min(y, T(1000))   # 底部信息行保险上限，防止贴到 1024 底边被裁
     sr = dl["sunrise"][0][-5:]
     ss = dl["sunset"][0][-5:]
-    d.text((S(36), y), "日出 %s   日落 %s" % (sr, ss),
+    d.text((S(36), y), "数据更新 %s%s   日出 %s   日落 %s" % (upd, "" if live else " (缓存)", sr, ss),
            font=font(T(21)), fill=BLACK)
     return img
 
