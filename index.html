@@ -17,7 +17,6 @@ body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'Ping
 /* 四个按钮统一为等高等宽 flex 盒子：无论文字还是 SVG 都垂直水平居中、高度一致 */
 .btn { display:inline-block; vertical-align:middle; width:42px; height:38px; line-height:34px; text-align:center; padding:0; border:2px solid #000; font-size:27px; color:#000; text-decoration:none; overflow:hidden; box-sizing:border-box; }
 .btn svg { display:inline-block; vertical-align:middle; }
-.btn svg { display:block; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
 /* 主内容滚动区：高度由 JS 按视口-顶栏-底栏算成固定像素，避免被 fixed 底栏遮住长作业 */
 #scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -70,7 +69,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .saverWt .wx { font-size:28px; margin:6px 0; }
 .saverWt .wt3 { font-size:26px; }
 .saverHist { font-size:28px; line-height:46px; word-break:break-all; }
-.barLink { display:inline-block; vertical-align:middle; font-size:22px; color:#111; text-decoration:none; border:2px solid #000; padding:4px 10px; line-height:1; margin-left:6px; box-sizing:border-box; }
+.barLink { display:inline-block; vertical-align:middle; height:38px; line-height:34px; text-align:center; font-size:22px; color:#111; text-decoration:none; border:2px solid #000; padding:0 10px; margin-left:6px; box-sizing:border-box; }
 </style>
 </head>
 <body>
