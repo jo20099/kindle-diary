@@ -147,7 +147,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 
 <div id="game">
   <div id="gameHead">坦克大战 <span class="timer" id="gameTimer">10:00</span></div>
-  <div id="gameInfo">击毁 <b id="gameScore">0</b> 辆 · 生命 <b id="gameLife">3</b> · 方向键/WASD 移动，空格开火</div>
+  <div id="gameInfo">击毁 <b id="gameScore">0</b> 辆 · 生命 <b id="gameLife">3</b> · 方向键/WASD 移动，空格开火<span id="gameTimeupTip"></span></div>
   <div id="gameWrap">
     <canvas id="gameCanvas" width="360" height="360"></canvas>
     <div id="gameMsg" style="display:none"></div>
@@ -689,6 +689,7 @@ function resetGame(){
   G.enemies=[]; G.bullets=[]; G.eb=[];
   G.score=0; G.life=3; G.tick=0; G.keys={};
   document.getElementById('gameMsg').style.display='none';
+  document.getElementById('gameTimeupTip').innerHTML='';
   for(var i=0;i<3;i++) spawnEnemy();
   updateGameHUD(); drawGame();
 }
@@ -704,8 +705,14 @@ function updateGameHUD(){
 }
 function gameClock(){
   if(!G.on) return;
-  G.left--;
-  if(G.left<=0){ G.left=0; updateGameHUD(); gameOver('时间到！'); return; }
+  /* 时间到只停表、不中断当前这局；打完（被击毁/主动退出）自然结束，额度归零后不再给「再玩一局」 */
+  if(G.left>0){
+    G.left--;
+    if(G.left<=0){
+      G.left=0;
+      document.getElementById('gameTimeupTip').innerHTML=' · <b>时间到，本局打完就结束</b>';
+    }
+  }
   updateGameHUD();
 }
 function fireBullet(){
