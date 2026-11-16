@@ -625,7 +625,7 @@ function saverWeather(){
   x.send(null);
 }
 
-/* ========== 坦克大战：三科作业全部订正后解锁，每次 10 分钟 ========== */
+/* ========== 坦克大战：三科作业全部订正后解锁，每天首次 10 分钟，用完当天不能再开 ========== */
 var SUBJ_KEY=['chinese','math','english'];
 var SUBJ_NAME={chinese:'语文',math:'数学',english:'英语'};
 function hwStatusOf(d){
@@ -642,14 +642,22 @@ function missingSubjects(){
   for(var i=0;i<SUBJ_KEY.length;i++){ if(st[SUBJ_KEY[i]]!=='corrected') m.push(SUBJ_NAME[SUBJ_KEY[i]]); }
   return m;
 }
+function gameUsedKey(d){ return 'gameUsed_'+d; }
+function gameUsedToday(){ try{ return localStorage.getItem(gameUsedKey(cur))=='1'; }catch(e){ return false; } }
+function markGameUsed(){ try{ localStorage.setItem(gameUsedKey(cur),'1'); }catch(e){} }
 function gameBtnHTML(){
-  var ok=gameUnlocked();
-  return '<a class="barLink'+(ok?'':' locked')+'" href="javascript:void(0)" onclick="gameClick()" title="'+(ok?'坦克大战':'三科全部订正后解锁')+'">'+(ok?'🎮 游戏':'🔒 游戏')+'</a>';
+  if(!gameUnlocked()) return '<a class="barLink locked" href="javascript:void(0)" onclick="gameClick()" title="三科全部订正后解锁">🔒 游戏</a>';
+  if(gameUsedToday()) return '<a class="barLink locked" href="javascript:void(0)" onclick="gameClick()" title="今天的 10 分钟已用完，明天再来">✅ 已玩</a>';
+  return '<a class="barLink" href="javascript:void(0)" onclick="gameClick()" title="坦克大战（今天 10 分钟）">🎮 游戏</a>';
 }
 function gameClick(){
   if(!gameUnlocked()){
     var m=missingSubjects();
     alert('三科作业全部完成并订正后才能玩坦克大战～\n还差：'+(m.length?m.join('、'):'（同步中，请稍后刷新）'));
+    return;
+  }
+  if(gameUsedToday()){
+    alert('今天的 10 分钟游戏时间已经用完啦，明天再来吧～');
     return;
   }
   openGame();
@@ -660,7 +668,9 @@ var G={on:false, timer:null, loop:null, ctx:null,
   px:8, py:16, pdir:0, enemies:[], bullets:[], eb:[],
   score:0, life:3, left:600, tick:0, keys:{}, lastMove:0};
 var GTILE=20, GGRID=18;
-function openGame(){
+function openGame(again){
+  /* 当天首次：写「已玩」标记并把额度设为 600 秒；「再玩一局」沿用剩余时间，不重置 */
+  if(!again){ markGameUsed(); G.left=600; }
   document.getElementById('game').classList.add('on');
   var cv=document.getElementById('gameCanvas');
   G.ctx=cv.getContext('2d');
@@ -677,7 +687,7 @@ function exitGame(){
 function resetGame(){
   G.on=true; G.px=8; G.py=16; G.pdir=0;
   G.enemies=[]; G.bullets=[]; G.eb=[];
-  G.score=0; G.life=3; G.left=600; G.tick=0; G.keys={};
+  G.score=0; G.life=3; G.tick=0; G.keys={};
   document.getElementById('gameMsg').style.display='none';
   for(var i=0;i<3;i++) spawnEnemy();
   updateGameHUD(); drawGame();
@@ -804,7 +814,11 @@ function drawGame(){
 function gameOver(msg){
   G.on=false;
   var m=document.getElementById('gameMsg');
-  m.innerHTML=msg+'<br>本局击毁 '+G.score+' 辆<br><span class="barLink" onclick="openGame()">再玩一局</span>';
+  /* 当天额度还有剩 → 可继续玩；时间到 → 当天不能再开 */
+  var again = (G.left>0)
+    ? '<br><span class="barLink" onclick="openGame(true)">再玩一局（剩 '+G.left+' 秒）</span>'
+    : '<br>今天的 10 分钟已用完，明天再来吧～';
+  m.innerHTML=msg+'<br>本局击毁 '+G.score+' 辆'+again;
   m.style.display='block';
 }
 
