@@ -9,14 +9,12 @@
 html,body { background:#fff; color:#000; }
 /* 全局字体栈：英文用经典无衬线，中文回退到苹方/雅黑， Kindle 等老浏览器回落到 Arial/系统 */
 body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; -webkit-text-size-adjust:none; line-height:1.3; }
-#bar { font-size:24px; padding:9px 12px; border-bottom:2px solid #000; line-height:38px; white-space:nowrap; overflow:hidden; }
+#bar { font-size:24px; padding:9px 12px; border-bottom:2px solid #000; display:flex; flex-wrap:nowrap; align-items:center; gap:7px; }
 /* 第一行日期：细字重 + 字母微距，更秀气（Helvetica Neue Light 风格） */
-#bar b { font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; vertical-align:middle; }
-/* 按钮组右浮动：避开老内核 flex 兼容问题，日期在左、按钮在右 */
-.barBtns { float:right; white-space:nowrap; }
+#bar b { font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; white-space:nowrap; margin-right:auto; }
 /* 四个按钮统一为等高等宽 flex 盒子：无论文字还是 SVG 都垂直水平居中、高度一致 */
-.btn { display:inline-block; vertical-align:middle; width:42px; height:38px; line-height:34px; text-align:center; padding:0; border:2px solid #000; font-size:27px; color:#000; text-decoration:none; overflow:hidden; box-sizing:border-box; }
-.btn svg { display:inline-block; vertical-align:middle; }
+.btn { display:inline-flex; align-items:center; justify-content:center; width:42px; height:38px; padding:0; border:2px solid #000; font-size:27px; line-height:1; color:#000; text-decoration:none; }
+.btn svg { display:block; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
 /* 主内容滚动区：高度由 JS 按视口-顶栏-底栏算成固定像素，避免被 fixed 底栏遮住长作业 */
 #scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; }
@@ -69,7 +67,23 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .saverWt .wx { font-size:28px; margin:6px 0; }
 .saverWt .wt3 { font-size:26px; }
 .saverHist { font-size:28px; line-height:46px; word-break:break-all; }
-.barLink { display:inline-block; vertical-align:middle; height:38px; line-height:34px; text-align:center; font-size:22px; color:#111; text-decoration:none; border:2px solid #000; padding:0 10px; margin-left:6px; box-sizing:border-box; }
+.barLink { font-size:22px; color:#111; text-decoration:none; border:2px solid #000; padding:4px 10px; line-height:1; margin-left:6px; }
+.barLink.locked { color:#999; border-color:#bbb; }
+/* 坦克大战：全屏覆盖层（黑白高对比，墨水屏友好） */
+#game { position:fixed; left:0; top:0; width:100%; height:100%; background:#fff; z-index:10001; display:none; }
+#game.on { display:block; }
+#gameHead { font-size:26px; font-weight:700; padding:8px 14px; border-bottom:2px solid #000; }
+#gameHead .timer { float:right; font-size:30px; font-weight:700; }
+#gameWrap { text-align:center; padding:10px; }
+#gameCanvas { background:#fff; border:2px solid #000; touch-action:none; }
+#gameInfo { font-size:22px; padding:6px 14px; }
+#gamePad { text-align:center; padding:6px 0 14px; }
+#gamePad td { text-align:center; }
+.padBtn { display:inline-block; width:64px; height:56px; line-height:52px; border:2px solid #000; font-size:30px; font-weight:700; color:#000; background:#fff; cursor:pointer; -webkit-user-select:none; user-select:none; }
+.padBtn:active { background:#000; color:#fff; }
+.padBtn.fire { width:96px; background:#111; color:#fff; }
+.padBtn.fire:active { background:#fff; color:#000; }
+#gameMsg { font-size:26px; font-weight:700; text-align:center; padding:16px 12px; line-height:40px; }
 </style>
 </head>
 <body>
@@ -129,6 +143,21 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
   </tr></table>
   <div class="saverSec">📜 历史上的今天</div>
   <div class="saverHist" id="saverHist">&nbsp;</div>
+</div>
+
+<div id="game">
+  <div id="gameHead">坦克大战 <span class="timer" id="gameTimer">10:00</span></div>
+  <div id="gameInfo">击毁 <b id="gameScore">0</b> 辆 · 生命 <b id="gameLife">3</b> · 方向键/WASD 移动，空格开火</div>
+  <div id="gameWrap">
+    <canvas id="gameCanvas" width="360" height="360"></canvas>
+    <div id="gameMsg" style="display:none"></div>
+  </div>
+  <table id="gamePad">
+    <tr><td colspan="3"><span class="padBtn" data-k="up">▲</span></td></tr>
+    <tr><td><span class="padBtn" data-k="left">◀</span></td><td><span class="padBtn fire" data-k="fire">开火</span></td><td><span class="padBtn" data-k="right">▶</span></td></tr>
+    <tr><td colspan="3"><span class="padBtn" data-k="down">▼</span></td></tr>
+  </table>
+  <div style="text-align:center;padding-bottom:16px"><span class="barLink" onclick="exitGame()">退出游戏</span></div>
 </div>
 
 <script>
@@ -508,13 +537,12 @@ function render(){
   var dt=new Date(cur.replace(/-/g,'/'));
   document.getElementById('bar').innerHTML=
     '<b>'+fmtDateEN(dt)+'</b>'
-    +'<span class="barBtns">'
     +'<a class="btn" href="javascript:void(0)" onclick="page(-1)" title="前一天" aria-label="前一天">‹</a>'
     +'<a class="btn" href="javascript:void(0)" onclick="page(1)" title="后一天" aria-label="后一天">›</a>'
-    +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></a>'
     +'<a class="btn" href="javascript:void(0)" onclick="load()" title="刷新" aria-label="刷新">↻</a>'
-    +'<a class="barLink" href="javascript:void(0)" onclick="enterSaver()" title="屏保模式">屏保</a>'
-    +'</span>';
+    +gameBtnHTML()
+    +'<a class="barLink" href="javascript:void(0)" onclick="enterSaver()" title="屏保模式">屏保</a>';
 
   var ck=dd.checklist||[], s='', i;
   if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
@@ -596,6 +624,232 @@ function saverWeather(){
   };
   x.send(null);
 }
+
+/* ========== 坦克大战：三科作业全部订正后解锁，每次 10 分钟 ========== */
+var SUBJ_KEY=['chinese','math','english'];
+var SUBJ_NAME={chinese:'语文',math:'数学',english:'英语'};
+function hwStatusOf(d){
+  var days=(DATA&&DATA.days)||{};
+  return ((days[d]||{}).hwStatus)||{};
+}
+function gameUnlocked(){
+  var st=hwStatusOf(cur);
+  for(var i=0;i<SUBJ_KEY.length;i++){ if(st[SUBJ_KEY[i]]!=='corrected') return false; }
+  return true;
+}
+function missingSubjects(){
+  var st=hwStatusOf(cur), m=[];
+  for(var i=0;i<SUBJ_KEY.length;i++){ if(st[SUBJ_KEY[i]]!=='corrected') m.push(SUBJ_NAME[SUBJ_KEY[i]]); }
+  return m;
+}
+function gameBtnHTML(){
+  var ok=gameUnlocked();
+  return '<a class="barLink'+(ok?'':' locked')+'" href="javascript:void(0)" onclick="gameClick()" title="'+(ok?'坦克大战':'三科全部订正后解锁')+'">'+(ok?'🎮 游戏':'🔒 游戏')+'</a>';
+}
+function gameClick(){
+  if(!gameUnlocked()){
+    var m=missingSubjects();
+    alert('三科作业全部完成并订正后才能玩坦克大战～\n还差：'+(m.length?m.join('、'):'（同步中，请稍后刷新）'));
+    return;
+  }
+  openGame();
+}
+
+/* --- 游戏引擎（网格化，黑白高对比，全屏重绘减少墨水屏残影） --- */
+var G={on:false, timer:null, loop:null, ctx:null,
+  px:8, py:16, pdir:0, enemies:[], bullets:[], eb:[],
+  score:0, life:3, left:600, tick:0, keys:{}, lastMove:0};
+var GTILE=20, GGRID=18;
+function openGame(){
+  document.getElementById('game').classList.add('on');
+  var cv=document.getElementById('gameCanvas');
+  G.ctx=cv.getContext('2d');
+  resetGame();
+  if(!G.timer){ G.timer=setInterval(gameClock,1000); }
+  if(!G.loop){ G.loop=setInterval(gameStep,110); }
+}
+function exitGame(){
+  G.on=false;
+  if(G.timer){ clearInterval(G.timer); G.timer=null; }
+  if(G.loop){ clearInterval(G.loop); G.loop=null; }
+  document.getElementById('game').classList.remove('on');
+}
+function resetGame(){
+  G.on=true; G.px=8; G.py=16; G.pdir=0;
+  G.enemies=[]; G.bullets=[]; G.eb=[];
+  G.score=0; G.life=3; G.left=600; G.tick=0; G.keys={};
+  document.getElementById('gameMsg').style.display='none';
+  for(var i=0;i<3;i++) spawnEnemy();
+  updateGameHUD(); drawGame();
+}
+function spawnEnemy(){
+  var col=1+Math.floor(Math.random()*(GGRID-2));
+  G.enemies.push({x:col, y:0, dir:2});
+}
+function updateGameHUD(){
+  var m=Math.floor(G.left/60), s=G.left%60;
+  document.getElementById('gameTimer').textContent=m+':'+(s<10?'0':'')+s;
+  document.getElementById('gameScore').textContent=G.score;
+  document.getElementById('gameLife').textContent=G.life;
+}
+function gameClock(){
+  if(!G.on) return;
+  G.left--;
+  if(G.left<=0){ G.left=0; updateGameHUD(); gameOver('时间到！'); return; }
+  updateGameHUD();
+}
+function fireBullet(){
+  if(!G.on) return;
+  var dx=0,dy=0;
+  if(G.pdir===0){dy=-1;}else if(G.pdir===1){dx=1;}else if(G.pdir===2){dy=1;}else{dx=-1;}
+  G.bullets.push({x:G.px, y:G.py, dx:dx, dy:dy});
+}
+function movePlayer(dir){
+  if(!G.on) return;
+  G.pdir=dir;
+  var nx=G.px, ny=G.py;
+  if(dir===0) ny--; else if(dir===1) nx++; else if(dir===2) ny++; else nx--;
+  if(nx>=0&&nx<GGRID&&ny>=0&&ny<GGRID){ G.px=nx; G.py=ny; }
+  drawGame();
+}
+function gameStep(){
+  if(!G.on) return;
+  var now=(new Date()).getTime();
+  /* 玩家按住方向键连续移动 */
+  if(now-G.lastMove>130){
+    if(G.keys.up){ movePlayer(0); G.lastMove=now; }
+    else if(G.keys.right){ movePlayer(1); G.lastMove=now; }
+    else if(G.keys.down){ movePlayer(2); G.lastMove=now; }
+    else if(G.keys.left){ movePlayer(3); G.lastMove=now; }
+  }
+  G.tick++;
+  /* 敌人移动与开火 */
+  for(var i=0;i<G.enemies.length;i++){
+    var e=G.enemies[i];
+    if(G.tick%3===0){
+      var ny=e.y+1;
+      if(ny>=GGRID){ e.y=0; e.x=1+Math.floor(Math.random()*(GGRID-2)); }
+      else e.y=ny;
+      if(Math.random()<0.18){
+        G.eb.push({x:e.x, y:e.y, dx:0, dy:1});
+      }
+    }
+  }
+  /* 玩家子弹推进 */
+  for(var b=G.bullets.length-1;b>=0;b--){
+    var p=G.bullets[b];
+    p.x+=p.dx*0.6; p.y+=p.dy*0.6;
+    var hit=false;
+    for(var k=0;k<G.enemies.length;k++){
+      var en=G.enemies[k];
+      if(Math.abs(p.x-en.x)<0.8&&Math.abs(p.y-en.y)<0.8){
+        G.enemies.splice(k,1); G.score++; hit=true; break;
+      }
+    }
+    if(hit||p.x<0||p.x>=GGRID||p.y<0||p.y>=GGRID) G.bullets.splice(b,1);
+  }
+  /* 敌人子弹推进 */
+  for(var q=G.eb.length-1;q>=0;q--){
+    var eb=G.eb[q];
+    eb.y+=eb.dy*0.5;
+    if(Math.abs(eb.x-G.px)<0.8&&Math.abs(eb.y-G.py)<0.8){
+      G.eb.splice(q,1);
+      G.life--;
+      if(G.life<=0){ updateGameHUD(); gameOver('坦克被击毁！'); return; }
+      G.px=8; G.py=16;
+      updateGameHUD();
+      continue;
+    }
+    if(eb.y>=GGRID||eb.y<0||eb.x<0||eb.x>=GGRID) G.eb.splice(q,1);
+  }
+  /* 补充敌人 */
+  while(G.enemies.length<3) spawnEnemy();
+  updateGameHUD();
+  drawGame();
+}
+function drawTank(px,py,dir,solid){
+  var c=G.ctx;
+  c.fillStyle=solid?'#000':'#fff';
+  c.strokeStyle='#000'; c.lineWidth=2;
+  c.fillRect(px-8,py-8,16,16); c.strokeRect(px-8,py-8,16,16);
+  /* 炮管：一个实心小矩形指向朝向 */
+  c.fillStyle='#000';
+  if(dir===0) c.fillRect(px-2,py-13,4,7);
+  else if(dir===2) c.fillRect(px-2,py+6,4,7);
+  else if(dir===1) c.fillRect(px+6,py-2,7,4);
+  else c.fillRect(px-13,py-2,7,4);
+}
+function drawGame(){
+  var c=G.ctx; if(!c) return;
+  /* 全屏白色重绘，减少墨水屏残影 */
+  c.fillStyle='#fff'; c.fillRect(0,0,GTILE*GGRID,GTILE*GGRID);
+  /* 网格淡线（深灰，墨水屏清晰） */
+  c.strokeStyle='#e0e0e0'; c.lineWidth=1;
+  for(var g=1;g<GGRID;g++){
+    c.beginPath(); c.moveTo(g*GTILE,0); c.lineTo(g*GTILE,GTILE*GGRID); c.stroke();
+    c.beginPath(); c.moveTo(0,g*GTILE); c.lineTo(GTILE*GGRID,g*GTILE); c.stroke();
+  }
+  /* 敌人（空心方块） */
+  for(var i=0;i<G.enemies.length;i++){
+    var e=G.enemies[i]; drawTank(e.x*GTILE+10,e.y*GTILE+10,e.dir,false);
+  }
+  /* 玩家（实心方块） */
+  drawTank(G.px*GTILE+10,G.py*GTILE+10,G.pdir,true);
+  /* 子弹 */
+  c.fillStyle='#000';
+  for(var b=0;b<G.bullets.length;b++){ var p=G.bullets[b]; c.fillRect(p.x*GTILE-2,p.y*GTILE-2,5,5); }
+  c.strokeStyle='#000'; c.lineWidth=1;
+  for(var q=0;q<G.eb.length;q++){ var eb=G.eb[q]; c.strokeRect(eb.x*GTILE-2,eb.y*GTILE-2,5,5); }
+}
+function gameOver(msg){
+  G.on=false;
+  var m=document.getElementById('gameMsg');
+  m.innerHTML=msg+'<br>本局击毁 '+G.score+' 辆<br><span class="barLink" onclick="openGame()">再玩一局</span>';
+  m.style.display='block';
+}
+
+/* 键盘 + 触屏控制 */
+document.addEventListener('keydown',function(e){
+  if(!G.on) return;
+  var k=e.keyCode;
+  if(k===38||k===87){ G.keys.up=true; movePlayer(0); e.preventDefault(); }
+  else if(k===39||k===68){ G.keys.right=true; movePlayer(1); e.preventDefault(); }
+  else if(k===40||k===83){ G.keys.down=true; movePlayer(2); e.preventDefault(); }
+  else if(k===37||k===65){ G.keys.left=true; movePlayer(3); e.preventDefault(); }
+  else if(k===32||k===13){ fireBullet(); e.preventDefault(); }
+  else if(k===27){ exitGame(); }
+});
+document.addEventListener('keyup',function(e){
+  var k=e.keyCode;
+  if(k===38||k===87) G.keys.up=false;
+  else if(k===39||k===68) G.keys.right=false;
+  else if(k===40||k===83) G.keys.down=false;
+  else if(k===37||k===65) G.keys.left=false;
+});
+(function bindPad(){
+  var btns=document.querySelectorAll('.padBtn');
+  for(var i=0;i<btns.length;i++){
+    (function(b){
+      var key=b.getAttribute('data-k');
+      var rep=null;
+      function act(){
+        if(key==='fire') fireBullet();
+        else if(key==='up') movePlayer(0);
+        else if(key==='right') movePlayer(1);
+        else if(key==='down') movePlayer(2);
+        else if(key==='left') movePlayer(3);
+      }
+      function start(e){ if(e.preventDefault) e.preventDefault(); act(); if(key!=='fire') rep=setInterval(act,160); }
+      function stop(){ if(rep){ clearInterval(rep); rep=null; } }
+      b.addEventListener('touchstart',start,false);
+      b.addEventListener('touchend',stop,false);
+      b.addEventListener('touchcancel',stop,false);
+      b.addEventListener('mousedown',start,false);
+      b.addEventListener('mouseup',stop,false);
+      b.addEventListener('mouseleave',stop,false);
+    })(btns[i]);
+  }
+})();
 
 load();
 setInterval(load,60000);
