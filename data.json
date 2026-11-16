@@ -33,9 +33,9 @@
       ],
       "diary": "在校表现：A+ ×2",
       "hwStatus": {
-        "chinese": "corrected",
+        "math": "corrected",
         "english": "corrected",
-        "math": "corrected"
+        "chinese": "corrected"
       }
     },
     "2026-11-05": {
@@ -53,9 +53,9 @@
       ],
       "diary": "在校表现：A+ ×4；书面表扬 ×1（11课堂听优秀：10.35.15.6.40.37.25.30.19.38.16.29.17.3.4.36.32.1.11.43.8.）",
       "hwStatus": {
+        "math": "corrected",
         "chinese": "corrected",
-        "english": "corrected",
-        "math": "corrected"
+        "english": "corrected"
       }
     },
     "2026-11-06": {
@@ -72,8 +72,8 @@
       ],
       "diary": "📜 历史上的今天：1897年 德国皇帝威廉二世藉巨野教案，令其驻扎在上海的远东舰队司令棣利司侵占胶澳（今青岛）；1943年 第二次世界大战：苏联红军收复基辅，但基辅古建筑都已经被德军毁掉。",
       "hwStatus": {
-        "chinese": "corrected",
         "english": "corrected",
+        "chinese": "corrected",
         "math": "corrected"
       }
     },
@@ -92,8 +92,8 @@
       "diary": "📜 历史上的今天：1912年 中华民国北洋政府表示，不承认《俄蒙协约》；1914年 第一次世界大战：驻守中国青岛的德军向日军投降。",
       "hwStatus": {
         "chinese": "corrected",
-        "english": "corrected",
-        "math": "corrected"
+        "math": "corrected",
+        "english": "corrected"
       }
     },
     "2026-11-10": {
@@ -112,8 +112,8 @@
       "diary": "📜 历史上的今天：1038年 李元昊建国称帝，国号“大夏”，史称西夏；1944年 中国抗日战争：豫湘桂会战中，桂林、柳州失守。",
       "hwStatus": {
         "chinese": "corrected",
-        "english": "corrected",
-        "math": "corrected"
+        "math": "corrected",
+        "english": "corrected"
       }
     },
     "2026-11-11": {
@@ -131,9 +131,9 @@
       ],
       "diary": "📜 历史上的今天：1924年 中山大学成立（成立时称国立广东大学）；1937年 历时三个月的淞沪会战落幕，国民革命军撤退，日军侵入，上海沦陷。",
       "hwStatus": {
-        "chinese": "todo",
         "english": "todo",
-        "math": "todo"
+        "math": "todo",
+        "chinese": "todo"
       }
     },
     "2026-11-12": {
@@ -152,8 +152,8 @@
       "diary": "📜 历史上的今天：725年 唐朝天文学家僧一行与梁令瓒研制成功水运浑天仪；1927年 苏联共产党领袖列夫·托洛茨基因反对斯大林的政策而被开除出苏联共产党。",
       "hwStatus": {
         "chinese": "todo",
-        "english": "todo",
-        "math": "todo"
+        "math": "todo",
+        "english": "todo"
       }
     },
     "2026-11-13": {
@@ -171,8 +171,8 @@
       "diary": "📜 历史上的今天：1909年 中国近代文学史上规模最大的文学社团南社在苏州成立；1918年 北京拆毁克林德牌坊。",
       "hwStatus": {
         "chinese": "corrected",
-        "english": "corrected",
-        "math": "corrected"
+        "math": "corrected",
+        "english": "corrected"
       }
     },
     "2026-11-14": {
