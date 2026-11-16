@@ -127,12 +127,20 @@ def transform(snap):
         return days.setdefault(d, {"homework": [], "checklist": [], "diary": ""})
 
     # 1) 作业
+    # 同时记录三科状态到 hwStatus，供 Kindle 页判定「三科都完成并订正」解锁游戏。
+    # 规则与 App settleMood 一致：三科各有一条作业且 status 都为 corrected 才算全订正。
+    STATUS = {"todo", "done", "corrected"}
     for h in snap.get("homework", []) or []:
         content = (h.get("content") or "").replace("\n", " ").strip()
-        if not content:
-            continue
-        subj = SUBJ.get(h.get("subject"), h.get("subject") or "")
-        day(h.get("record_date"))["homework"].append(f"{subj}：{content}")
+        subj_key = h.get("subject") or ""
+        subj = SUBJ.get(subj_key, subj_key)
+        d = day(h.get("record_date"))
+        if content:
+            d["homework"].append(f"{subj}：{content}")
+        # 记录科目状态（即使内容为空也算一条作业记录，与 App 判定口径一致）
+        if subj_key in SUBJ:
+            st = h.get("status") or "todo"
+            d.setdefault("hwStatus", {})[subj_key] = st if st in STATUS else "todo"
 
     # 2) 自定义任务 -> 打卡清单；按当天 task_log 标注进度
     logs = {}  # task_id -> {date: qty}
