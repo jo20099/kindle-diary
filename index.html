@@ -69,6 +69,17 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .saverHist { font-size:28px; line-height:46px; word-break:break-all; }
 .barLink { font-size:22px; color:#111; text-decoration:none; border:2px solid #000; padding:4px 10px; line-height:1; margin-left:6px; }
 .barLink.locked { color:#999; border-color:#bbb; }
+/* 游戏入口横条：顶栏下方独立一行，两个入口 table 平分宽度（兼容 KPW2，绝不重叠） */
+#gameBar { border-bottom:2px solid #000; background:#fafafa; }
+#gameBar table { width:100%; border-collapse:collapse; table-layout:fixed; }
+#gameBar td { width:50%; text-align:center; padding:6px 8px; vertical-align:middle; }
+#gameBar td:first-child { border-right:2px solid #000; }
+.gameTile { display:block; text-decoration:none; color:#000; border:2px solid #000; background:#fff; padding:5px 4px; line-height:1.2; }
+.gameTile.locked { color:#999; border-color:#bbb; background:#f4f4f4; }
+.gameTile .gtIcon { display:block; font-size:30px; line-height:32px; }
+.gameTile .gtName { display:block; font-size:23px; font-weight:700; line-height:28px; }
+.gameTile .gtSub { display:block; font-size:17px; color:#555; line-height:21px; }
+.gameTile.locked .gtSub { color:#999; }
 /* 坦克大战：全屏覆盖层（黑白高对比，墨水屏友好） */
 #game { position:fixed; left:0; top:0; width:100%; height:100%; background:#fff; z-index:10001; display:none; }
 #game.on { display:block; }
@@ -84,11 +95,30 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .padBtn.fire { width:96px; background:#111; color:#fff; }
 .padBtn.fire:active { background:#fff; color:#000; }
 #gameMsg { font-size:26px; font-weight:700; text-align:center; padding:16px 12px; line-height:40px; }
+/* 舒尔特方格：全屏覆盖，5×5 大格子，黑白高对比，墨水屏友好 */
+#schulte { position:fixed; left:0; top:0; width:100%; height:100%; background:#fff; z-index:10002; display:none; overflow-y:auto; }
+#schulte.on { display:block; }
+#schHead { font-size:26px; font-weight:700; padding:8px 14px; border-bottom:2px solid #000; }
+#schHead .timer { float:right; font-size:30px; font-weight:700; }
+#schInfo { font-size:20px; padding:6px 14px; color:#333; }
+#schWrap { text-align:center; padding:6px 10px; }
+#schGrid { width:100%; border-collapse:collapse; table-layout:fixed; }
+#schGrid td { border:2px solid #000; text-align:center; vertical-align:middle; font-size:34px; font-weight:700; height:58px; cursor:pointer; -webkit-user-select:none; user-select:none; }
+#schGrid td.hit { background:#000; color:#fff; }
+#schGrid td.err { background:#eee; }
+#schHint { font-size:22px; text-align:center; min-height:30px; color:#111; font-weight:700; }
+#schHistory { font-size:19px; line-height:28px; padding:4px 14px; color:#333; }
+#schHistory b { color:#000; }
 </style>
 </head>
 <body>
 
 <div id="bar">&nbsp;</div>
+
+<div id="gameBar"><table><tr>
+  <td id="tankTile"></td>
+  <td id="schulteTile"></td>
+</tr></table></div>
 
 <div id="scroll">
 <table id="main">
@@ -158,6 +188,18 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
     <tr><td colspan="3"><span class="padBtn" data-k="down">▼</span></td></tr>
   </table>
   <div style="text-align:center;padding-bottom:16px"><span class="barLink" onclick="exitGame()">退出游戏</span></div>
+</div>
+
+<div id="schulte">
+  <div id="schHead">舒尔特方格 <span class="timer" id="schTimer">0.0 秒</span></div>
+  <div id="schInfo">按顺序点 1 → 25 · 第 <b id="schRound">1</b> 轮 · 最佳 <b id="schBest">--</b> 秒</div>
+  <div id="schWrap"><table id="schGrid"></table></div>
+  <div id="schHint">&nbsp;</div>
+  <div id="schHistory"></div>
+  <div style="text-align:center;padding:10px 0 20px">
+    <span class="barLink" onclick="newSchulteRound()">↻ 新一局</span>
+    <span class="barLink" onclick="exitSchulte()" style="margin-left:14px">退出</span>
+  </div>
 </div>
 
 <script>
@@ -525,10 +567,10 @@ function load(){
 }
 
 function fitScroll(){
-  var b=document.getElementById('bottom'), bar=document.getElementById('bar'), s=document.getElementById('scroll');
+  var b=document.getElementById('bottom'), bar=document.getElementById('bar'), gb=document.getElementById('gameBar'), s=document.getElementById('scroll');
   if(!b||!s) return;
   var vh=document.documentElement.clientHeight||window.innerHeight||0;
-  var h=vh-(b.offsetHeight||0)-(bar?bar.offsetHeight:0);
+  var h=vh-(b.offsetHeight||0)-(bar?bar.offsetHeight:0)-(gb?gb.offsetHeight:0);
   if(h>0) s.style.height=h+'px';
 }
 
@@ -541,8 +583,8 @@ function render(){
     +'<a class="btn" href="javascript:void(0)" onclick="page(1)" title="后一天" aria-label="后一天">›</a>'
     +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></a>'
     +'<a class="btn" href="javascript:void(0)" onclick="load()" title="刷新" aria-label="刷新">↻</a>'
-    +gameBtnHTML()
     +'<a class="barLink" href="javascript:void(0)" onclick="enterSaver()" title="屏保模式">屏保</a>';
+  renderGameBar();
 
   var ck=dd.checklist||[], s='', i;
   if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
@@ -645,10 +687,17 @@ function missingSubjects(){
 function gameUsedKey(d){ return 'gameUsed_'+d; }
 function gameUsedToday(){ try{ return localStorage.getItem(gameUsedKey(cur))=='1'; }catch(e){ return false; } }
 function markGameUsed(){ try{ localStorage.setItem(gameUsedKey(cur),'1'); }catch(e){} }
-function gameBtnHTML(){
-  if(!gameUnlocked()) return '<a class="barLink locked" href="javascript:void(0)" onclick="gameClick()" title="三科全部订正后解锁">🔒 游戏</a>';
-  if(gameUsedToday()) return '<a class="barLink locked" href="javascript:void(0)" onclick="gameClick()" title="今天的 10 分钟已用完，明天再来">✅ 已玩</a>';
-  return '<a class="barLink" href="javascript:void(0)" onclick="gameClick()" title="坦克大战（今天 10 分钟）">🎮 游戏</a>';
+function renderGameBar(){
+  var tankIcon,tankName,tankSub,tankCls,tankClick;
+  if(!gameUnlocked()){ tankIcon='🔒'; tankName='坦克大战'; tankSub='三科订正后解锁'; tankCls=' locked'; tankClick='gameClick'; }
+  else if(gameUsedToday()){ tankIcon='✅'; tankName='坦克大战'; tankSub='今天已玩 · 明天再来'; tankCls=' locked'; tankClick='gameClick'; }
+  else { tankIcon='🎮'; tankName='坦克大战'; tankSub='今天 10 分钟'; tankCls=''; tankClick='gameClick'; }
+  document.getElementById('tankTile').innerHTML=
+    '<a class="gameTile'+tankCls+'" href="javascript:void(0)" onclick="'+tankClick+'()">'
+    +'<span class="gtIcon">'+tankIcon+'</span><span class="gtName">'+tankName+'</span><span class="gtSub">'+tankSub+'</span></a>';
+  document.getElementById('schulteTile').innerHTML=
+    '<a class="gameTile" href="javascript:void(0)" onclick="openSchulte()">'
+    +'<span class="gtIcon">🔢</span><span class="gtName">舒尔特方格</span><span class="gtSub">专注训练 · 不限时</span></a>';
 }
 function gameClick(){
   if(!gameUnlocked()){
@@ -871,6 +920,92 @@ document.addEventListener('keyup',function(e){
     })(btns[i]);
   }
 })();
+
+/* ========== 舒尔特方格：不限时，按顺序点 1-25，记录每轮完成时间 ========== */
+var SH={on:false, timer:null, start:0, elapsed:0, next:1, nums:[], rounds:[]};
+function shKey(d){ return 'schulte_'+d; }
+function shLoadRounds(){
+  try{ var a=JSON.parse(localStorage.getItem(shKey(cur))||'[]'); return (a&&a.push)?a:[]; }catch(e){ return []; }
+}
+function shSaveRounds(a){ try{ localStorage.setItem(shKey(cur), JSON.stringify(a)); }catch(e){} }
+function shBest(){ var a=SH.rounds, b=0, i; for(i=0;i<a.length;i++){ if(!b||a[i]<b) b=a[i]; } return b; }
+function shFmt(sec){ return (Math.round(sec*10)/10).toString(); }
+function openSchulte(){
+  SH.rounds=shLoadRounds();
+  document.getElementById('schulte').classList.add('on');
+  newSchulteRound();
+}
+function exitSchulte(){
+  SH.on=false;
+  if(SH.timer){ clearInterval(SH.timer); SH.timer=null; }
+  document.getElementById('schulte').classList.remove('on');
+}
+function shuffle25(){
+  var a=[],i,j,t;
+  for(i=1;i<=25;i++) a.push(i);
+  for(i=a.length-1;i>0;i--){ j=Math.floor(Math.random()*(i+1)); t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function newSchulteRound(){
+  if(SH.timer){ clearInterval(SH.timer); SH.timer=null; }
+  SH.nums=shuffle25(); SH.next=1; SH.start=0; SH.elapsed=0; SH.on=true;
+  document.getElementById('schHint').innerHTML='点击数字 <b>1</b> 开始计时～';
+  document.getElementById('schRound').textContent=(SH.rounds.length+1);
+  document.getElementById('schBest').textContent=SH.rounds.length?shFmt(shBest()):'--';
+  document.getElementById('schTimer').textContent='0.0 秒';
+  shDrawGrid(); shDrawHistory();
+}
+function shDrawGrid(){
+  var html='',i,n,r,c;
+  for(r=0;r<5;r++){
+    html+='<tr>';
+    for(c=0;c<5;c++){
+      n=SH.nums[r*5+c];
+      html+='<td data-n="'+n+'" onclick="schTap('+n+',this)">'+n+'</td>';
+    }
+    html+='</tr>';
+  }
+  document.getElementById('schGrid').innerHTML=html;
+}
+function shTick(){
+  if(!SH.on||!SH.start) return;
+  SH.elapsed=(new Date()).getTime()-SH.start;
+  document.getElementById('schTimer').textContent=shFmt(SH.elapsed/1000)+' 秒';
+}
+function schTap(n,el){
+  if(!SH.on) return;
+  if(n!==SH.next){
+    el.className='err';
+    (function(node){ setTimeout(function(){ node.className=''; },200); })(el);
+    document.getElementById('schHint').innerHTML='顺序错啦，请点 <b>'+SH.next+'</b>';
+    return;
+  }
+  if(!SH.start){
+    SH.start=(new Date()).getTime();
+    SH.timer=setInterval(shTick,100);
+  }
+  el.className='hit'; el.onclick=null;
+  SH.next++;
+  document.getElementById('schHint').innerHTML=(SH.next<=25)?('很好，接着点 <b>'+SH.next+'</b>'):'完成！';
+  if(SH.next>25) shFinish();
+}
+function shFinish(){
+  SH.on=false;
+  if(SH.timer){ clearInterval(SH.timer); SH.timer=null; }
+  var sec=SH.elapsed/1000;
+  SH.rounds.push(sec); shSaveRounds(SH.rounds);
+  document.getElementById('schTimer').textContent=shFmt(sec)+' 秒';
+  document.getElementById('schBest').textContent=shFmt(shBest());
+  document.getElementById('schHint').innerHTML='🎉 第 '+SH.rounds.length+' 轮完成！用时 <b>'+shFmt(sec)+' 秒</b>';
+  shDrawHistory();
+}
+function shDrawHistory(){
+  var a=SH.rounds, h='', i;
+  if(!a.length){ document.getElementById('schHistory').innerHTML='还没有记录，点「新一局」开始吧～'; return; }
+  h='最近成绩：';
+  for(i=Math.max(0,a.length-10);i<a.length;i++){ h+='第'+(i+1)+'轮 <b>'+shFmt(a[i])+'s</b>'+(i<a.length-1?' · ':''); }
+  document.getElementById('schHistory').innerHTML=h;
+}
 
 load();
 setInterval(load,60000);
