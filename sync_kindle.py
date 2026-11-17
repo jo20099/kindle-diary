@@ -13,8 +13,11 @@ task_logs / praise）。该快照可由云端数据库工具读取后存为 snap
   - 原有 weather / 顶部标题等：从仓库现有 data.json 合并保留，只更新 days。
 
 用法：
-  python3 sync_kindle.py snapshot.json
-需环境变量 GITHUB_TOKEN（对 jo20099/kindle-diary 有 Contents 读写权限）。
+  python3 sync_kindle.py              # 无参数：云端直拉快照（GitHub Actions / 定时同步用）
+  python3 sync_kindle.py snapshot.json # 带参数：从本地快照文件读取（兼容旧流程）
+需环境变量 GITHUB_TOKEN（对 jo20099/kindle-diary 有 Contents 读写权限）；
+无该变量时会回退读取脚本同目录的 .github_token，仅本地用。
+云端直拉使用公开 publishableKey（本就嵌在前端页面里，仅能读公开分享数据，无写入权限）。
 """
 import sys, json, base64, os, re, time, urllib.request, urllib.error
 
@@ -22,6 +25,27 @@ REPO = "jo20099/kindle-diary"
 PATH = "data.json"
 BRANCH = "main"
 SUBJ = {"chinese": "语文", "math": "数学", "english": "英语"}
+
+# ---- 云端直拉快照（无需登录态、不依赖本机） ----
+SNAPSHOT_URL = "https://sprite-diary.app.workbuddy.host/.cloud/database/rest/rpc/public_family_snapshot"
+WB_PUBLISHABLE_KEY = "wbpk_TqAAsuPoi1djlCKK73zp3v_v6fnHLZ75eshBQfV5k1VtvyutiGW74Xb"
+SHARE_CODE = "KINDLE"
+
+def fetch_snapshot():
+    """用公开 key 直接调用云端快照 RPC，返回 dict；失败抛异常。"""
+    body = json.dumps({"p_code": SHARE_CODE}).encode("utf-8")
+    req = urllib.request.Request(SNAPSHOT_URL, data=body, headers={
+        "x-wb-webapp-access-key": WB_PUBLISHABLE_KEY,
+        "Content-Type": "application/json",
+        "User-Agent": "kindle-diary-sync/1.0",
+    }, method="POST")
+    with urllib.request.urlopen(req, timeout=60) as r:
+        raw = json.loads(r.read().decode("utf-8"))
+    if isinstance(raw, list):
+        raw = raw[0] if raw else {}
+    if isinstance(raw, dict) and "public_family_snapshot" in raw:
+        raw = raw["public_family_snapshot"]
+    return raw
 
 # ---- 历史上的今天：来自 GitHub 公开数据集 PrintNow/TodayInHistory ----
 HISTORY_URL = "https://raw.githubusercontent.com/PrintNow/TodayInHistory/master/history_in_today.json"
@@ -218,15 +242,18 @@ def github_put(token, content_b64, sha):
         return r.status, r.read().decode("utf-8")
 
 def main():
-    if len(sys.argv) < 2:
-        print("usage: python3 sync_kindle.py snapshot.json"); sys.exit(2)
-    with open(sys.argv[1], encoding="utf-8") as f:
-        snap = json.load(f)
-    if isinstance(snap, list):
-        snap = snap[0] if snap else {}
-    # 兼容 public_family_snapshot 的返回结构：[{"public_family_snapshot": {...}}]
-    if isinstance(snap, dict) and "public_family_snapshot" in snap:
-        snap = snap["public_family_snapshot"]
+    if len(sys.argv) >= 2:
+        # 兼容旧流程：从本地快照文件读取
+        with open(sys.argv[1], encoding="utf-8") as f:
+            snap = json.load(f)
+        if isinstance(snap, list):
+            snap = snap[0] if snap else {}
+        if isinstance(snap, dict) and "public_family_snapshot" in snap:
+            snap = snap["public_family_snapshot"]
+    else:
+        # 无参数：云端直拉快照（GitHub Actions 定时同步用）
+        print("从云端拉取快照 ...")
+        snap = fetch_snapshot()
     if not snap.get("ok"):
         print("snapshot 状态异常（ok != true），未同步。", file=sys.stderr); sys.exit(1)
 
@@ -265,7 +292,11 @@ def main():
         cur = json.loads(base64.b64decode(existing["content"]).decode("utf-8"))
         cur_days = cur.get("days", {}) or {}
         # 按日期合并：sprite 每日数据为主，覆盖同名日期；保留 Kindle 独有日期（如手动录入）
+        # 保护：云端拉取历史可能失败导致 diary 为空，此时保留已有 diary，避免误清在校表现/历史上的今天
         for d, v in new_days.items():
+            old = cur_days.get(d) or {}
+            if not v.get("diary") and old.get("diary"):
+                v["diary"] = old["diary"]
             cur_days[d] = v
         cur["days"] = cur_days
         new_data = cur
