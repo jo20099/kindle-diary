@@ -220,6 +220,26 @@
         "chinese": "corrected",
         "math": "corrected"
       }
+    },
+    "2026-11-17": {
+      "homework": [
+        "语文：运动会无作业",
+        "数学：无",
+        "英语：无"
+      ],
+      "checklist": [
+        "背古诗",
+        "口算小超市",
+        "练字",
+        "raz k（达到A）",
+        "ket核心词汇"
+      ],
+      "diary": "📜 历史上的今天：1843年 根据《南京条约》，上海开埠；1927年 广州张发奎部黄琪翔会同李福林发动政变，广州张黄事变爆发。",
+      "hwStatus": {
+        "chinese": "todo",
+        "math": "todo",
+        "english": "todo"
+      }
     }
   }
 }
