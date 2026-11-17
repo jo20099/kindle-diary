@@ -24,7 +24,8 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .col { vertical-align:top; padding:5px 12px 2px; }
 .sec { font-size:25px; font-weight:600; letter-spacing:0.5px; border-bottom:1px solid #000; padding-bottom:3px; margin-bottom:5px; }
 /* 雪碧提醒徽标（明天有雨带伞 / 次日周五周一穿校服），随标题行右浮动，无提醒时隐藏 */
-.sec #remind { float:right; font-size:20px; font-weight:600; letter-spacing:0; color:#000; background:#fff; border:2px solid #000; padding:1px 8px; line-height:1.2; white-space:nowrap; }
+/* 提醒态（有雨带伞/周五周一校服）：加粗醒目；无提醒时为普通夸夸话术 */
+#remind.on { font-weight:700; color:#000; }
 /* 作业/打卡条目：长文本自动换行（支持单条最多 ~150 字） */
 .item { font-size:28px; line-height:40px; word-break:break-all; cursor:pointer; }
 /* 已完成：整行置灰 + 文本删除线 */
@@ -144,8 +145,8 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
   <div id="rulesToggle" onclick="toggleRules()">各科作业要求 <span id="rulesArr">〔展开〕</span></div>
   <div id="rulesBox"></div>
   <div id="diaryRow">
-    <div class="sec">成长日记<span id="remind" style="display:none"></span></div>
-    <p id="diary">&nbsp;</p>
+    <div class="sec">……(^-^)雪碧对你说</div>
+    <p id="remind">&nbsp;</p>
   </div>
   <table id="mascotRow">
     <tr>
@@ -609,17 +610,15 @@ function render(){
   }
   document.getElementById('hw').innerHTML=t;
 
-  var diaryTxt=dd.diary||'';
-  /* 历史上的今天已移出本页（改用 Kindle 屏保展示），页面不渲染，避免占用底部空间 */
-  if(diaryTxt.indexOf('历史上的今天')>=0) diaryTxt='';
-  document.getElementById('diary').innerHTML=diaryTxt?esc(diaryTxt):'<span class="empty">这一天还没有日记～</span>';
+  /* “成长日记”区块已改为“雪碧对你说”（提醒/夸夸由 paintReminders 渲染），此处不再引用 #diary */
 }
 function page(n){ var dt=new Date(cur.replace(/-/g,'/')); dt.setDate(dt.getDate()+n); cur=fmtDate(dt); render(); }
 function goLatest(){ cur=latest; render(); }
 
 var WMO={0:'晴',1:'晴',2:'多云',3:'阴',45:'雾',48:'雾',51:'毛毛雨',53:'毛毛雨',55:'毛毛雨',56:'冻毛毛雨',57:'冻毛毛雨',61:'小雨',63:'中雨',65:'大雨',66:'冻雨',67:'冻雨',71:'小雪',73:'中雪',75:'大雪',77:'米雪',80:'阵雨',81:'阵雨',82:'强阵雨',85:'阵雪',86:'阵雪',95:'雷阵雨',96:'雷阵雨',99:'雷冰雹'};
-/* ===== 雪碧提醒：明天有雨带伞 / 次日周五周一穿校服 ===== */
+/* ===== 雪碧对你说：有雨带伞 / 次日周五周一穿校服，无提醒则夸夸 ===== */
 var tomorrowRain=false;
+var PRAISE=['瓜瓜今天也超棒的！','瓜瓜笑起来真好看～','雪碧觉得瓜瓜是世界上最聪明的小孩！','瓜瓜今天一定很努力，雪碧为你骄傲！','瓜瓜最可爱啦，抱抱！','雪碧好喜欢和瓜瓜在一起呀！','今天也要开开心心哦，瓜瓜！'];
 function isRain(code){
   if(code===undefined||code===null) return false;
   return (code>=51&&code<=67)||(code>=80&&code<=82)||(code>=95&&code<=99);
@@ -627,17 +626,16 @@ function isRain(code){
 function paintReminders(){
   var el=document.getElementById('remind');
   if(!el) return;
-  if(!cur) { el.style.display='none'; return; }
+  if(!cur) { el.innerHTML='&nbsp;'; el.className=''; return; }
   var dt=new Date(cur.replace(/-/g,'/'));
   var ndow=(dt.getDay()+1)%7; /* 明天周几：1=周一 … 5=周五 */
   var r=[];
-  if(ndow===1) r.push('明天周一·穿校服');
-  else if(ndow===5) r.push('明天周五·穿校服');
+  if(ndow===1) r.push('明天周一，记得穿校服！');
+  else if(ndow===5) r.push('明天周五，记得穿校服！');
   /* 带伞只在看“当天/最新一天”时提醒，翻看历史不打扰 */
-  if(tomorrowRain && cur===latest) r.push('明天有雨·带伞');
-  if(!r.length){ el.style.display='none'; el.innerHTML=''; return; }
-  el.style.display='';
-  el.innerHTML='雪碧提醒：'+r.join(' / ');
+  if(tomorrowRain && cur===latest) r.push('明天有雨，记得带伞！');
+  if(r.length){ el.className='on'; el.innerHTML='☔ '+r.join('<br>'); }
+  else { el.className=''; el.innerHTML=rnd(PRAISE); }
 }
 function weather(){
   if(!DATA||!DATA.weather) return;
