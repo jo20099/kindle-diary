@@ -220,6 +220,19 @@ def transform(snap):
 
     return days
 
+def sort_homework(days):
+    """把所有日期的 homework 按 语文 → 数学 → 英语 稳定排序。
+
+    覆盖从旧 data.json 继承下来的历史日期（那些没有经过 transform），
+    同科目多条作业保持原有先后。未知科目排最后。
+    """
+    name2rank = {SUBJ[k]: i for i, k in enumerate(SUBJ_ORDER)}
+    for v in (days or {}).values():
+        hw = v.get("homework") or []
+        if not hw:
+            continue
+        v["homework"] = sorted(hw, key=lambda s: name2rank.get(s.split("：", 1)[0], 90))
+
 def github_get(token):
     url = f"https://api.github.com/repos/{REPO}/contents/{PATH}?ref={BRANCH}"
     req = urllib.request.Request(url, headers={
@@ -314,6 +327,9 @@ def main():
     else:
         new_data = {"days": new_days}
         sha = None
+
+    # 统一规整：所有日期（含继承的历史日期）作业都按 语文 → 数学 → 英语
+    sort_homework(new_data.get("days"))
 
     content_str = json.dumps(new_data, ensure_ascii=False, indent=2)
     if existing:
