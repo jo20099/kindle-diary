@@ -16,7 +16,7 @@ body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'Ping
 #bar td.barDate { width:30%; font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; }
 #bar td.barBtns { text-align:right; width:70%; }
 /* 四个按钮统一为等高等宽盒子：无论文字还是 SVG 都垂直水平居中、高度一致 */
-.btn { display:inline-block; width:42px; height:38px; line-height:34px; padding:0; border:2px solid #000; font-size:27px; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:7px; }
+.btn { display:inline-block; width:42px; height:38px; line-height:34px; padding:0; border:2px solid #000; font-size:27px; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:6px; }
 .btn svg { display:inline-block; vertical-align:middle; width:22px; height:22px; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
 /* 主内容滚动区：高度由 JS 按视口-顶栏-底栏算成固定像素，避免被 fixed 底栏遮住长作业 */
@@ -80,7 +80,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .barLink.locked { color:#999; border-color:#bbb; }
 /* 游戏入口：顶栏小按钮（原独立横条太占竖向空间，压缩了今日作业可视区；改到顶栏后省约 100px）
    .btnWide 与 .btn 同高 38px，宽度随文字自适应，锁定态置灰 */
-.btnWide { display:inline-block; height:38px; line-height:34px; padding:0 9px; border:2px solid #000; font-size:21px; font-weight:700; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:7px; white-space:nowrap; }
+.btnWide { display:inline-block; height:38px; line-height:34px; padding:0 7px; border:2px solid #000; font-size:19px; font-weight:700; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:5px; white-space:nowrap; }
 .btnWide.locked { color:#999; border-color:#bbb; }
 /* 坦克大战：全屏覆盖层（黑白高对比，墨水屏友好） */
 #game { position:fixed; left:0; top:0; width:100%; height:100%; background:#fff; z-index:10001; display:none; }
@@ -210,9 +210,10 @@ function weekCN(d){ return '周'+'日一二三四五六'.charAt(d.getDay()); }
 /* 英文日期：Monday, November 9, 2026（不依赖 Intl，兼容老浏览器） */
 function fmtDateEN(d){
   if(isNaN(d)) return '';
-  var wd=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
-  var mo=['January','February','March','April','May','June','July','August','September','October','November','December'][d.getMonth()];
-  return wd+', '+mo+' '+d.getDate()+', '+d.getFullYear();
+  /* 顶栏宽 758px 内要同时放日期+6 个按钮，长英文日期会溢出压住按钮，统一用短格式 */
+  var wd=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+  var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  return wd+', '+mo+' '+d.getDate();
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function done(d,i){ try{ return localStorage.getItem('ck_'+d+'_'+i)=='1'; }catch(e){ return false; } }
@@ -718,8 +719,8 @@ function renderGameBar(){
   if(!gameUnlocked()){ tankIcon='🔒'; tankCls=' locked'; }
   else if(gameUsedToday()){ tankIcon='✅'; tankCls=' locked'; }
   else { tankIcon='🎮'; tankCls=''; }
-  return '<a class="btnWide'+tankCls+'" href="javascript:void(0)" onclick="gameClick()">'+tankIcon+' 坦克大战</a>'
-       + '<a class="btnWide" href="javascript:void(0)" onclick="openSchulte()">🔢 舒尔特方格</a>';
+  return '<a class="btnWide'+tankCls+'" href="javascript:void(0)" onclick="gameClick()">'+tankIcon+' 坦克</a>'
+       + '<a class="btnWide" href="javascript:void(0)" onclick="openSchulte()">🔢 方格</a>';
 }
 function gameClick(){
   if(!gameUnlocked()){
