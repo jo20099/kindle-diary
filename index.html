@@ -9,14 +9,16 @@
 html,body { background:#fff; color:#000; }
 /* 全局字体栈：英文用经典无衬线，中文回退到苹方/雅黑， Kindle 等老浏览器回落到 Arial/系统 */
 body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; -webkit-text-size-adjust:none; line-height:1.3; }
-/* 顶栏用 table 排版（KPW2 老内核对 flex 支持不稳）：日期在左，按钮在右，强制同一行 */
+/* 顶栏用 table 排版（KPW2 老内核对 flex 支持不稳）：日期 | 四个操作按钮 | 游戏按钮，强制同一行
+   三列宽度按 24/34/42 分配：操作按钮右对齐到 58%，正好落在“作业要求”链接上方 */
 #bar { font-size:24px; padding:9px 12px; border-bottom:2px solid #000; }
 #bar table { width:100%; border-collapse:collapse; }
 #bar td { vertical-align:middle; white-space:nowrap; }
-#bar td.barDate { width:30%; font-size:23px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; }
-#bar td.barBtns { text-align:right; width:70%; }
+#bar td.barDate { width:24%; font-size:22px; font-weight:300; letter-spacing:0.3px; color:#1a1a1a; }
+#bar td.barOps { text-align:right; width:34%; }
+#bar td.barGames { text-align:right; width:42%; }
 /* 四个按钮统一为等高等宽盒子：无论文字还是 SVG 都垂直水平居中、高度一致 */
-.btn { display:inline-block; width:42px; height:38px; line-height:34px; padding:0; border:2px solid #000; font-size:27px; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:6px; }
+.btn { display:inline-block; width:38px; height:38px; line-height:34px; padding:0; border:2px solid #000; font-size:25px; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:5px; }
 .btn svg { display:inline-block; vertical-align:middle; width:22px; height:22px; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
 /* 主内容滚动区：高度由 JS 按视口-顶栏-底栏算成固定像素，避免被 fixed 底栏遮住长作业 */
@@ -45,10 +47,10 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .ruleList { padding:5px 9px; }
 .ruleItem { font-size:22px; line-height:33px; word-break:break-all; }
 
-/* 底部固定块（钉屏幕最底）：成长日记 → 雪碧独立一行 → 天气 */
+/* 底部固定块：雪碧对你说（标题+内容同一行）→ 雪碧独立一行 → 天气 */
 #bottom { position:fixed; left:0; bottom:0; width:100%; background:#fff; border-top:2px solid #000; }
-#diaryRow { padding:6px 14px; border-bottom:2px solid #000; }
-#diaryRow p { font-size:26px; line-height:38px; word-break:break-all; }
+#diaryRow { padding:6px 14px; border-bottom:2px solid #000; font-size:24px; line-height:36px; word-break:break-all; }
+#diaryRow .dLabel { font-weight:700; }
 /* 雪碧单独一行：左=猫咪图像，右=招呼文字，同一行内左右排布 */
 #mascotRow td { vertical-align:middle; border-bottom:2px solid #000; }
 #mascotRow .cat { width:162px; padding:4px 0 4px 10px; }
@@ -133,10 +135,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 </div>
 
 <div id="bottom">
-  <div id="diaryRow">
-    <div class="sec">……(^-^)雪碧对你说</div>
-    <p id="remind">&nbsp;</p>
-  </div>
+  <div id="diaryRow"><span class="dLabel">雪碧说：</span><span id="remind">&nbsp;</span></div>
   <table id="mascotRow">
     <tr>
       <td class="cat"><img src="cat.png" width="152" height="152" alt="cat"></td>
@@ -578,17 +577,18 @@ function fitScroll(){
 function render(){
   var days=(DATA&&DATA.days)||{}, dd=days[cur]||{};
   var dt=new Date(cur.replace(/-/g,'/'));
-  /* 顶栏：日期 + 六个按钮，table 一行排版，KPW2 上绝不换行；游戏入口改为顶栏小按钮（省竖向空间） */
+  /* 顶栏：日期 | 四个操作按钮 | 游戏按钮，三列 table 一行排版；操作按钮右对齐到 58%，落在“作业要求”上方 */
   document.getElementById('bar').innerHTML=
     '<table><tr>'
     +'<td class="barDate"><b>'+fmtDateEN(dt)+'</b></td>'
-    +'<td class="barBtns">'
+    +'<td class="barOps">'
     +'<a class="btn" href="javascript:void(0)" onclick="page(-1)" title="前一天" aria-label="前一天">‹</a>'
     +'<a class="btn" href="javascript:void(0)" onclick="page(1)" title="后一天" aria-label="后一天">›</a>'
     +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></a>'
     +'<a class="btn" href="javascript:void(0)" onclick="load()" title="刷新" aria-label="刷新">↻</a>'
-    +renderGameBar()
-    +'</td></tr></table>';
+    +'</td>'
+    +'<td class="barGames">'+renderGameBar()+'</td>'
+    +'</tr></table>';
 
   var ck=dd.checklist||[], s='', i;
   if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
@@ -628,7 +628,7 @@ function paintReminders(){
   else if(ndow===5) r.push('明天周五，记得穿校服！');
   /* 带伞只在看“当天/最新一天”时提醒，翻看历史不打扰 */
   if(tomorrowRain && cur===latest) r.push('明天有雨，记得带伞！');
-  if(r.length){ el.className='on'; el.innerHTML='☔ '+r.join('<br>'); }
+  if(r.length){ el.className='on'; el.innerHTML='☔ '+r.join('；'); }
   else { el.className=''; el.innerHTML=rnd(PRAISE); }
 }
 function weather(){
