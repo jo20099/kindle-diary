@@ -305,9 +305,17 @@ def main():
         new_data = {"days": new_days}
         sha = None
 
-    content_b64 = base64.b64encode(
-        json.dumps(new_data, ensure_ascii=False, indent=2).encode("utf-8")
-    ).decode("ascii")
+    content_str = json.dumps(new_data, ensure_ascii=False, indent=2)
+    if existing:
+        # 数据无变化就不提交，避免定时/推送触发产生大量空 commit
+        try:
+            old_str = base64.b64decode(existing["content"]).decode("utf-8")
+            if old_str.strip() == content_str.strip():
+                print("数据无变化，跳过提交。")
+                return
+        except Exception:
+            pass
+    content_b64 = base64.b64encode(content_str.encode("utf-8")).decode("ascii")
     status, resp = github_put(token, content_b64, sha)
     print(f"github commit: HTTP {status}")
     print(resp[:300])
