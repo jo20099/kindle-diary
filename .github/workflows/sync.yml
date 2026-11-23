@@ -2,6 +2,13 @@ name: Sync 雪碧日记 to Kindle screen
 on:
   schedule:
     - cron: '*/15 * * * *'
+    - cron: '4,19,34,49 * * * *'
+    - cron: '8,23,38,53 * * * *'
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'data.json'
+      - 'weather.png'
   workflow_dispatch:
 permissions:
   contents: write
