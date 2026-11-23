@@ -51,7 +51,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 #diaryRow p { font-size:26px; line-height:38px; word-break:break-all; }
 /* 雪碧单独一行：左=猫咪图像，右=招呼文字，同一行内左右排布 */
 #mascotRow td { vertical-align:middle; border-bottom:2px solid #000; }
-#mascotRow .cat { width:200px; padding:4px 0 4px 10px; }
+#mascotRow .cat { width:162px; padding:4px 0 4px 10px; }
 #mascotRow .cat img { display:block; }
 #mascotRow .say { padding:6px 14px; text-align:left; }
 #mascotRow .bubble { font-size:26px; line-height:35px; font-weight:600; color:#000; word-break:break-all; }
@@ -121,11 +121,11 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 <table id="main">
   <tr>
     <td class="col" style="width:55%">
-      <div class="sec">今日作业</div>
+      <div class="sec">今日作业 <span class="secLink" onclick="openRules()">作业要求 ›</span></div>
       <div id="hw"></div>
     </td>
     <td class="col" style="width:45%">
-      <div class="sec">今日打卡 <span class="secLink" onclick="openRules()">作业要求 ›</span></div>
+      <div class="sec">今日打卡</div>
       <div id="ck"></div>
     </td>
   </tr>
@@ -139,7 +139,7 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
   </div>
   <table id="mascotRow">
     <tr>
-      <td class="cat"><img src="cat.png" width="190" height="190" alt="cat"></td>
+      <td class="cat"><img src="cat.png" width="152" height="152" alt="cat"></td>
       <td class="say">
         <div class="bubble" id="greet1">&nbsp;</div>
         <div class="greet" id="greet2">&nbsp;</div>
