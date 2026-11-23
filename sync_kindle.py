@@ -25,6 +25,8 @@ REPO = "jo20099/kindle-diary"
 PATH = "data.json"
 BRANCH = "main"
 SUBJ = {"chinese": "语文", "math": "数学", "english": "英语"}
+# Kindle 屏上固定按「语文 → 数学 → 英语」排序，与录入先后无关
+SUBJ_ORDER = ["chinese", "math", "english"]
 
 # ---- 云端直拉快照（无需登录态、不依赖本机） ----
 SNAPSHOT_URL = "https://sprite-diary.app.workbuddy.host/.cloud/database/rest/rpc/public_family_snapshot"
@@ -160,11 +162,19 @@ def transform(snap):
         subj = SUBJ.get(subj_key, subj_key)
         d = day(h.get("record_date"))
         if content:
-            d["homework"].append(f"{subj}：{content}")
+            # 先记 (科次序, 录入次序, 文本)，最后统一按 语文→数学→英语 排序
+            rank = SUBJ_ORDER.index(subj_key) if subj_key in SUBJ_ORDER else 90
+            d.setdefault("_hw", []).append((rank, len(d.get("_hw", [])), f"{subj}：{content}"))
         # 记录科目状态（即使内容为空也算一条作业记录，与 App 判定口径一致）
         if subj_key in SUBJ:
             st = h.get("status") or "todo"
             d.setdefault("hwStatus", {})[subj_key] = st if st in STATUS else "todo"
+
+    # 作业固定按 语文 → 数学 → 英语 输出（未知科目排在最后，保持录入顺序）
+    for _d in days.values():
+        _items = _d.pop("_hw", None)
+        if _items:
+            _d["homework"] = [t for _r, _s, t in sorted(_items, key=lambda x: (x[0], x[1]))]
 
     # 2) 自定义任务 -> 打卡清单；按当天 task_log 标注进度
     logs = {}  # task_id -> {date: qty}
