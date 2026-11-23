@@ -19,13 +19,18 @@ body { font-family:'Helvetica Neue', Helvetica, Arial, 'Segoe UI', Roboto, 'Ping
 #bar td.barOps { text-align:right; width:29.6%; }
 #bar td.barGames { text-align:right; width:46.4%; }
 /* 四个按钮统一为等高等宽盒子：无论文字还是 SVG 都垂直水平居中、高度一致 */
-.btn { display:inline-block; width:38px; height:38px; line-height:34px; padding:0; border:2px solid #000; font-size:25px; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:5px; }
-.btn svg { display:inline-block; vertical-align:middle; width:22px; height:22px; }
+.btn { display:inline-block; width:36px; height:36px; line-height:32px; padding:0; border:2px solid #000; font-size:23px; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:11px; }
+.btn svg { display:inline-block; vertical-align:middle; width:20px; height:20px; }
 table { width:100%; border-collapse:collapse; table-layout:fixed; }
 /* 主内容滚动区：高度由 JS 按视口-顶栏-底栏算成固定像素，避免被 fixed 底栏遮住长作业 */
-#scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; }
-.col { vertical-align:top; padding:5px 12px 2px; }
-.sec { font-size:25px; font-weight:600; letter-spacing:0.5px; border-bottom:1px solid #000; padding-bottom:3px; margin-bottom:5px; }
+#scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 12px; }
+.sec { font-size:25px; font-weight:600; letter-spacing:0.5px; border-bottom:1px solid #000; padding-bottom:3px; margin:6px 0 5px; }
+/* 今日打卡区块（在今日作业下方）：与作业区分隔，2px 横线+更大上间距 */
+.secGap { border-top:2px solid #000; margin-top:14px; padding-top:8px; }
+/* 打卡两列：用 table 排版（老内核不支持 grid/flex），每行 2 项，同排等高、长文本自动折行不串位 */
+#ckTable { width:100%; border-collapse:collapse; table-layout:fixed; }
+#ckTable td { width:50%; vertical-align:top; padding:0 10px 0 0; }
+#ckTable td.last { padding-right:0; }
 /* 雪碧提醒徽标（明天有雨带伞 / 次日周五周一穿校服），随标题行右浮动，无提醒时隐藏 */
 /* 提醒态（有雨带伞/周五周一校服）：加粗醒目；无提醒时为普通夸夸话术 */
 #remind.on { font-weight:700; color:#000; }
@@ -82,8 +87,8 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 .barLink { font-size:22px; color:#111; text-decoration:none; border:2px solid #000; padding:4px 10px; line-height:1; margin-left:6px; }
 .barLink.locked { color:#999; border-color:#bbb; }
 /* 游戏入口：顶栏小按钮（原独立横条太占竖向空间，压缩了今日作业可视区；改到顶栏后省约 100px）
-   .btnWide 与 .btn 同高 38px，宽度随文字自适应，锁定态置灰 */
-.btnWide { display:inline-block; height:38px; line-height:34px; padding:0 7px; border:2px solid #000; font-size:19px; font-weight:700; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:5px; white-space:nowrap; }
+   .btnWide 与 .btn 同高 36px，宽度随文字自适应，锁定态置灰；组内间距放大到 11px 避免拥挤 */
+.btnWide { display:inline-block; height:36px; line-height:32px; padding:0 12px; border:2px solid #000; font-size:19px; font-weight:700; text-align:center; color:#000; text-decoration:none; vertical-align:middle; margin-left:11px; white-space:nowrap; }
 .btnWide.locked { color:#999; border-color:#bbb; }
 /* 坦克大战：全屏覆盖层（黑白高对比，墨水屏友好） */
 #game { position:fixed; left:0; top:0; width:100%; height:100%; background:#fff; z-index:10001; display:none; }
@@ -121,18 +126,10 @@ table { width:100%; border-collapse:collapse; table-layout:fixed; }
 <div id="bar">&nbsp;</div>
 
 <div id="scroll">
-<table id="main">
-  <tr>
-    <td class="col" style="width:55%">
-      <div class="sec">今日作业 <span class="secLink" onclick="openRules()">作业要求 ›</span></div>
-      <div id="hw"></div>
-    </td>
-    <td class="col" style="width:45%">
-      <div class="sec">今日打卡</div>
-      <div id="ck"></div>
-    </td>
-  </tr>
-</table>
+  <div class="sec">今日作业 <span class="secLink" onclick="openRules()">作业要求 ›</span></div>
+  <div id="hw"></div>
+  <div class="sec secGap">今日打卡</div>
+  <div id="ck"></div>
 </div>
 
 <div id="bottom">
@@ -592,9 +589,18 @@ function render(){
     +'</tr></table>';
 
   var ck=dd.checklist||[], s='', i;
-  if(!ck.length) s='<div class="empty">这一天还没有录入～</div>';
-  for(i=0;i<ck.length;i++){
-    s+='<div class="item'+(done(cur,i)?' done':'')+'"><input type="checkbox"'+(done(cur,i)?' checked':'')+' onclick="tog('+i+',this)"> <span class="txt">'+esc(ck[i])+'</span></div>';
+  if(!ck.length){
+    s='<div class="empty">这一天还没有录入～</div>';
+  }else{
+    /* 打卡项两列排布：左右格成行，行优先；奇数序号为右列（不加右内边距） */
+    var ckCell=function(k){
+      var cls=(k%2===1)?' class="last"':'';
+      if(k>=ck.length) return '<td'+cls+'></td>';
+      return '<td'+cls+'><div class="item'+(done(cur,k)?' done':'')+'"><input type="checkbox"'+(done(cur,k)?' checked':'')+' onclick="tog('+k+',this)"> <span class="txt">'+esc(ck[k])+'</span></div></td>';
+    };
+    s='<table id="ckTable">';
+    for(i=0;i<ck.length;i+=2) s+='<tr>'+ckCell(i)+ckCell(i+1)+'</tr>';
+    s+='</table>';
   }
   document.getElementById('ck').innerHTML=s;
 
