@@ -545,19 +545,61 @@ function setGreet(){
   paintReminders();
 }
 
-function load(){
+/* ===== 刷新即同步（Cloudflare Worker 中转）=====
+   点刷新 → 直接向 Worker 要一份「刚刚从云端快照生成」的数据（1-2 秒），不再等 GitHub 定时任务。
+   背景：页面跑在公网，云端快照接口有 Origin 白名单（带浏览器 Origin 一律 403），Worker 在服务端
+   带 key 拉取并转成与 data.json 相同结构，因此页面拿到的字段与原来完全一致。
+   WORKER_URL 填部署后的地址（见 worker.js 顶部说明）；留空则退化为「只重读 data.json」。 */
+var WORKER_URL='';
+var SYNCING=false, tipTimer=null;
+function syncNow(){
+  if(SYNCING) return;                       /* 同步中再点：忽略，避免重复请求 */
+  if(!WORKER_URL){ load(); return; }        /* 未配置就直接重读，行为与以前一致 */
+  SYNCING=true; render();                   /* 刷新按钮先变 ⋯ */
+  var x=new XMLHttpRequest();
+  x.open('GET',WORKER_URL+(WORKER_URL.indexOf('?')>-1?'&':'?')+'t='+(new Date()).getTime(),true);
+  x.onreadystatechange=function(){
+    if(x.readyState!==4) return;
+    var okd=false;
+    if(x.status===200){
+      try{ DATA=JSON.parse(x.responseText); }catch(e){ DATA=null; }
+      if(DATA && DATA.days){ okd=true; }
+    }
+    SYNCING=false;
+    if(okd){ applyData(function(){ barTip('已同步'); }); }
+    else { load(); barTip(x.status?('同步失败 '+x.status):'同步失败'); }
+  };
+  x.send(null);
+}
+/* 用顶栏日期位置临时显示一句提示，2.5 秒后恢复（不额外占高度） */
+function barTip(txt){
+  if(typeof txt!=='string' || !txt) return;
+  var bar=document.getElementById('bar'), tds=bar?bar.getElementsByTagName('td'):[];
+  if(!tds.length) return;
+  tds[0].innerHTML='<b>'+esc(txt)+'</b>';
+  if(tipTimer) clearTimeout(tipTimer);
+  tipTimer=setTimeout(function(){ render(); },2500);
+}
+
+/* 把 DATA 灌进界面：算最新日期、渲染顶栏/作业/打卡/雪碧说/天气 */
+function applyData(cb){
+  var ks=[], days=(DATA&&DATA.days)||{}, k;
+  for(k in days){ if(days.hasOwnProperty(k)) ks.push(k); }
+  ks.sort();
+  latest=ks.length?ks[ks.length-1]:fmtDate(new Date());
+  if(!cur) cur=latest;
+  render(); setGreet(); weather();
+  if(cb) cb();
+}
+
+function load(cb){
   var x=new XMLHttpRequest();
   x.open('GET','data.json?t='+(new Date()).getTime(),true);
   x.onreadystatechange=function(){
     if(x.readyState==4 && x.status==200){
       try{ DATA=JSON.parse(x.responseText); }catch(e){ DATA=null; }
       if(!DATA) return;
-      var ks=[], days=DATA.days||{}, k;
-      for(k in days){ if(days.hasOwnProperty(k)) ks.push(k); }
-      ks.sort();
-      latest=ks.length?ks[ks.length-1]:fmtDate(new Date());
-      if(!cur) cur=latest;
-      render(); setGreet(); weather();
+      applyData(cb);
     }
   };
   x.send(null);
@@ -583,7 +625,7 @@ function render(){
     +'<a class="btn" href="javascript:void(0)" onclick="page(-1)" title="前一天" aria-label="前一天">‹</a>'
     +'<a class="btn" href="javascript:void(0)" onclick="page(1)" title="后一天" aria-label="后一天">›</a>'
     +'<a class="btn" href="javascript:void(0)" onclick="goLatest()" title="今天" aria-label="今天"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg></a>'
-    +'<a class="btn" href="javascript:void(0)" onclick="load()" title="刷新" aria-label="刷新">↻</a>'
+    +'<a class="btn" href="javascript:void(0)" onclick="syncNow()" title="刷新并同步" aria-label="刷新并同步">'+(SYNCING?'⋯':'↻')+'</a>'
     +'</td>'
     +'<td class="barGames">'+renderGameBar()+'</td>'
     +'</tr></table>';
